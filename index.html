@@ -523,8 +523,9 @@ function renderLayout() {
   bottom1113.appendChild(createBedCard('nustep-bottom'));
 }
 
+// 預設時間判斷邏輯 (新增 Zimmer 為 20 分鐘)
 function getDefaultDuration(bedKey, itemName) {
-  if (itemName === '拉頸' || itemName === '拉腰' || itemName === 'TENS') return 20;
+  if (itemName === '拉頸' || itemName === '拉腰' || itemName === 'TENS' || itemName === 'Zimmer') return 20;
   if (itemName === 'IFT') return 15;
   if (itemName === 'ES 電療') return String(bedKey) === '7' ? 20 : 15;
   return 15;
