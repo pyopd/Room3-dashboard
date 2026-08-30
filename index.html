@@ -91,6 +91,7 @@
     justify-content: space-between;
     transition: all 0.2s ease;
     border: 2px solid transparent;
+    margin-top: 4px; /* 預留頂部 Badge 空間 */
   }
   .bed-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
@@ -111,12 +112,11 @@
     outline-offset: -1px;
   }
   
-  /* 防跌 Badge 在左上角，唔會遮住右上角的治療師代號 */
+  /* 防跌 Badge 在左上角 */
   .fall-badge {
     position: absolute; 
     top: -10px; 
     left: -6px;
-    right: auto;
     background: #dc2626; 
     color: #ffffff;
     font-size: 0.65em; 
@@ -130,20 +130,23 @@
     line-height: 1.1;
   }
 
+  /* 等候 Badge 在正上方置中，大小同防跌一致 */
   .queue-badge {
     position: absolute;
-    bottom: -10px;
+    top: -10px;
     left: 50%;
     transform: translateX(-50%);
-    background: #a855f7;
+    background: #9333ea;
     color: #ffffff;
-    font-size: 0.7em;
-    font-weight: 700;
-    padding: 1px 8px;
-    border-radius: 10px;
+    font-size: 0.65em;
+    font-weight: 800;
+    padding: 1.5px 5px;
+    border-radius: 8px;
     border: 1.5px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    z-index: 9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    z-index: 10;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
     white-space: nowrap;
   }
 
@@ -382,26 +385,26 @@ function createBedCard(key) {
 
   if (bed.status === 'idle') {
     card.innerHTML = `
+      ${queueTag}
       <div class="bed-header"><span class="bed-num">${displayName}</span><span class="bed-icon">${displayIcon}</span></div>
       <div class="status-text" style="font-size:0.7em; font-weight:600;">🟢 空置</div>
-      ${queueTag}
     `;
   } else if (bed.status === 'busy' && secondsLeft > 0) {
     let timerClass = secondsLeft <= 30 ? 'timer timer-warning' : 'timer';
     card.innerHTML = `
       ${fallTag}
+      ${queueTag}
       <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
       <div class="item-name">${bed.item || displayName}</div>
       <div class="${timerClass}">${formatTime(secondsLeft)}</div>
-      ${queueTag}
     `;
   } else {
     card.innerHTML = `
       ${fallTag}
+      ${queueTag}
       <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
       <div class="item-name">${bed.item || displayName}</div>
       <div class="timer timer-done">🔔 時間到</div>
-      ${queueTag}
     `;
   }
   return card;
