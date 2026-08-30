@@ -111,11 +111,12 @@
     outline-offset: -1px;
   }
   
-  /* 微調：防跌 Badge 字體適中（0.65em） */
+  /* 防跌 Badge 改到左上角，避免擋住右上角的治療師代號 */
   .fall-badge {
     position: absolute; 
-    top: -12px; 
-    right: -8px;
+    top: -10px; 
+    left: -6px;
+    right: auto;
     background: #dc2626; 
     color: #ffffff;
     font-size: 0.65em; 
