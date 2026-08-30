@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>物理治療Room 3 即時看板</title>
 <!-- 引入 Firebase SDK -->
-<script src="https://room-3-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -110,7 +111,7 @@
     outline-offset: -1px;
   }
   
-  /* 防跌 Badge 改到左上角，避免擋住右上角的治療師代號 */
+  /* 防跌 Badge 在左上角，唔會遮住右上角的治療師代號 */
   .fall-badge {
     position: absolute; 
     top: -10px; 
@@ -270,7 +271,7 @@
 
 <script>
 const firebaseConfig = {
-  databaseURL: "https://YOUR_FIREBASE_DATABASE_URL.firebasedatabase.app/"
+  databaseURL: "https://room-3-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
