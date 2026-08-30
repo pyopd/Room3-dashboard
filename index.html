@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>物理治療Room 3 即時看板</title>
+<!-- 引入 Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 12px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header { text-align: center; margin-bottom: 12px; }
+  header h1 { font-size: 1.5em; color: #38bdf8; letter-spacing: 1px; }
+  header p { color: #94a3b8; font-size: 0.8em; margin-top: 2px; }
+
+  .floor-plan {
+    display: inline-grid;
+    grid-template-columns: auto 24px auto;
+    gap: 12px;
+    background: #1e293b;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    border: 1px solid #334155;
+    margin: 0 auto;
+  }
+
+  .corridor {
+    background: #0f172a;
+    border: 1px dashed #334155;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    color: #64748b;
+    font-size: 0.75em;
+    letter-spacing: 4px;
+    font-weight: 600;
+  }
+
+  .left-container { display: flex; flex-direction: column-reverse; gap: 8px; }
+  .side-by-side-row { display: flex; gap: 8px; }
+  .right-container { display: flex; flex-direction: column; gap: 12px; width: fit-content; }
+
+  .area-top, .area-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.4);
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: fit-content;
+  }
+
+  .wall-divider {
+    height: 8px;
+    background: repeating-linear-gradient(45deg, #334155, #334155 8px, #1e293b 8px, #1e293b 16px);
+    border-radius: 4px;
+    margin: 2px 0;
+    border: 1px solid #475569;
+  }
+
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 160px); gap: 8px; width: fit-content; }
+  .empty-cell { width: 160px; height: 80px; }
+
+  .bed-card {
+    position: relative;
+    width: 160px; height: 80px;
+    background: #334155;
+    border-radius: 8px;
+    padding: 6px 6px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .bed-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+  .idle { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
+  .idle .status-text { color: #10b981; }
+  .busy-normal { border-color: #38bdf8 !important; background: rgba(56, 189, 248, 0.08); }
+  .busy-warning { border-color: #facc15 !important; background: rgba(250, 204, 21, 0.12); }
+  .done { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.15); animation: pulse-red 1.5s infinite; }
+
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  .high-fall-risk { outline: 2px solid #f59e0b; }
+  .fall-badge {
+    position: absolute; top: -6px; right: -4px;
+    background: #ef4444; color: white;
+    font-size: 0.6em; font-weight: bold;
+    padding: 1px 4px; border-radius: 8px;
+  }
+
+  .bed-header { display: flex; justify-content: space-between; align-items: center; }
+  .bed-num { font-size: 0.9em; font-weight: 700; color: #f8fafc; }
+  .bed-icon { font-size: 0.75em; opacity: 0.6; }
+  .physio-id { font-size: 0.75em; font-weight: 700; color: #38bdf8; }
+  .item-name { font-size: 0.7em; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .timer { font-size: 1em; font-weight: 700; font-family: 'Courier New', Courier, monospace; color: #38bdf8; }
+  .timer-warning { color: #facc15 !important; }
+  .timer-done { color: #ef4444 !important; font-weight: 800; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(4px);
+    justify-content: center; align-items: center; z-index: 100;
+  }
+  .modal {
+    background: #1e293b; padding: 20px; border-radius: 14px;
+    width: 360px; border: 1px solid #475569;
+  }
+  .modal h3 { margin-bottom: 12px; color: #38bdf8; text-align: center; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 0.8em; margin-bottom: 6px; color: #cbd5e1; }
+  .form-group select {
+    width: 100%; padding: 8px; border-radius: 8px;
+    border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 0.9em;
+  }
+
+  .btn-grid { display: grid; gap: 6px; }
+  .btn-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .btn-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .option-btn {
+    background: #0f172a; border: 1px solid #475569; color: #e2e8f0;
+    padding: 8px 4px; border-radius: 6px; cursor: pointer;
+    font-size: 0.8em; font-weight: 600; text-align: center;
+  }
+  .option-btn.selected { background: #0284c7; border-color: #38bdf8; color: #ffffff; }
+
+  .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fbbf24; font-weight: 600; font-size: 0.85em; }
+  .btn-group { display: flex; gap: 8px; margin-top: 16px; }
+  .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85em; }
+  .btn-start { background: #10b981; color: white; }
+  .btn-clear { background: #ef4444; color: white; }
+  .btn-cancel { background: #475569; color: white; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 物理治療Room 3 即時看板</h1>
+  <p>點擊床位/設備設定治療項目、時間及防跌標記</p>
+</header>
+
+<div class="floor-plan">
+  <div class="left-container" id="left-container"></div>
+  <div class="corridor">中央通道</div>
+  <div class="right-container">
+    <div class="area-top">
+      <div class="grid-5" id="top-29-27"></div>
+      <div class="grid-5" id="row-21-25"></div>
+    </div>
+    <div class="wall-divider"></div>
+    <div class="area-bottom">
+      <div class="grid-5" id="mid-18-15"></div>
+      <div class="grid-5" id="bottom-11-13"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">設定床位</h3>
+    <div class="form-group">
+      <label>治療師代號</label>
+      <select id="input-physio"></select>
+    </div>
+    <div class="form-group" id="item-form-group">
+      <label>選擇治療項目</label>
+      <div class="btn-grid btn-grid-2" id="item-btn-container"></div>
+    </div>
+    <div class="form-group">
+      <label>治療時間（分鐘）</label>
+      <div class="btn-grid btn-grid-4" id="time-btn-container"></div>
+    </div>
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="input-fall-risk" style="width:auto;"> ⚠️ 此病人有跌倒風險
+      </label>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-start" onclick="saveBedState()">▶️ 開始治療</button>
+      <button class="btn btn-clear" onclick="clearBedState()">🧹 清空</button>
+      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 初始化 Firebase (請在此替換你的 databaseURL)
+const firebaseConfig = {
+  databaseURL: "https://room-3-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const physioList = [
+  "001 A Chan", "002 J Yeung", "004 N Yuen", "006 S Wan", "008 W Chung",
+  "009 A Lau", "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung",
+  "014 E Wong", "015 C Lam", "016 T Fan", "017 A Yau", "018 A Yau",
+  "022 N Sze", "023 J Chan", "111 A Wong", "112 C Wong", "113 P Leung",
+  "115 J Pang", "118 J Fung", "119 A Ma", "201 W Cheung", "221 A Leung",
+  "321 M Chan", "454 C Tai", "455 C So", "534 W Li", "794 I Tsang", "799 J Yu"
+];
+
+function populatePhysioDropdown() {
+  const select = document.getElementById('input-physio');
+  select.innerHTML = '';
+  physioList.forEach(physio => {
+    const opt = document.createElement('option');
+    opt.value = physio;
+    opt.innerText = physio;
+    select.appendChild(opt);
+  });
+}
+
+const bedSpecificItems = {
+  1: ['ES 電療', 'HP', 'IFT', '運動'], 2: ['拉腰', 'HP'], 3: ['拉腰', 'HP'],
+  4: ['拉腰', 'HP'], 5: ['拉腰', 'HP'], 6: ['拉腰', 'HP'],
+  7: ['拉頸', 'ES 電療', 'HP'], 11: ['拉頸', 'ES 電療', 'Shockwave'],
+  12: ['拉頸', 'ES 電療'], 13: ['拉頸', 'ES 電療'], 15: ['IFT', '運動'],
+  17: ['IFT', '運動', 'HP'], 18: ['IFT', '運動', 'HP'], 21: ['Zimmer', '運動', 'HP'],
+  22: ['運動', 'Hot Magner', 'HP'], 23: ['Zimmer', '運動', 'HP'],
+  24: ['運動', 'Shockwave', '針灸', 'ES 電療', 'HP'], 25: ['rPMS', '運動', 'HP'],
+  27: ['Laser', '運動', 'IFT', '針灸'], 28: ['IFT', '運動'], 29: ['IFT', '運動']
+};
+
+const defaultItems = ['電療', 'HP', '運動', '超聲波'];
+const timeOptions = [5, 10, 15, 20];
+
+let beds = {
+  1: { status: 'idle' }, 2: { status: 'idle' }, 3: { status: 'idle' }, 4: { status: 'idle' },
+  5: { status: 'idle' }, 6: { status: 'idle' }, 7: { status: 'idle' },
+  'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, icon: '🎗️', label: 'Theraband' },
+  'nustep-left': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🚴', label: 'NuStep' },
+  'monark-bike': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🚴', label: 'Monark Bike' },
+  'nustep-bottom': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🚴', label: 'NuStep' },
+  29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
+  21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 25: { status: 'idle' },
+  18: { status: 'idle' }, 17: { status: 'idle' }, 15: { status: 'idle' },
+  11: { status: 'idle' }, 12: { status: 'idle' }, 13: { status: 'idle' }
+};
+
+let selectedBedKey = null;
+let selectedItemText = '';
+let selectedDuration = 15;
+
+// 監聽 Firebase 數據庫變動（即時同步）
+db.ref('beds').on('value', snapshot => {
+  const data = snapshot.val();
+  if (data) {
+    Object.keys(data).forEach(key => {
+      if (beds[key]) {
+        beds[key] = { ...beds[key], ...data[key] };
+      }
+    });
+    renderLayout();
+  }
+});
+
+function formatTime(sec) {
+  let m = Math.floor(sec / 60);
+  let s = sec % 60;
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function calculateSecondsLeft(bed) {
+  if (bed.status !== 'busy' || !bed.startTime) return 0;
+  const elapsedSeconds = Math.floor((Date.now() - bed.startTime) / 1000);
+  const totalSeconds = bed.duration * 60;
+  const remaining = totalSeconds - elapsedSeconds;
+  return remaining > 0 ? remaining : 0;
+}
+
+function createBedCard(key) {
+  const bed = beds[key];
+  const card = document.createElement('div');
+  
+  let displayName = bed.label || `${key} 號床`;
+  let displayIcon = bed.icon || '🛏️';
+  let riskClass = (bed.fallRisk && bed.status !== 'idle') ? 'high-fall-risk' : '';
+  
+  let secondsLeft = calculateSecondsLeft(bed);
+  let statusBorderClass = 'idle';
+  
+  if (bed.status === 'busy') {
+    if (secondsLeft <= 0) {
+      statusBorderClass = 'done';
+    } else {
+      statusBorderClass = secondsLeft <= 30 ? 'busy-warning' : 'busy-normal';
+    }
+  }
+
+  card.className = `bed-card ${statusBorderClass} ${riskClass}`;
+  card.onclick = () => openModal(key);
+
+  let fallTag = bed.fallRisk && bed.status !== 'idle' ? `<div class="fall-badge">⚠️防跌</div>` : '';
+
+  if (bed.status === 'idle') {
+    card.innerHTML = `
+      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="bed-icon">${displayIcon}</span></div>
+      <div class="status-text" style="font-size:0.7em; font-weight:600;">🟢 空置</div>
+    `;
+  } else if (bed.status === 'busy' && secondsLeft > 0) {
+    let timerClass = secondsLeft <= 30 ? 'timer timer-warning' : 'timer';
+    card.innerHTML = `
+      ${fallTag}
+      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
+      <div class="item-name">${bed.item || displayName}</div>
+      <div class="${timerClass}">${formatTime(secondsLeft)}</div>
+    `;
+  } else {
+    card.innerHTML = `
+      ${fallTag}
+      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
+      <div class="item-name">${bed.item || displayName}</div>
+      <div class="timer timer-done">🔔 時間到</div>
+    `;
+  }
+  return card;
+}
+
+function createEmptyCell() {
+  const div = document.createElement('div');
+  div.className = 'empty-cell';
+  return div;
+}
+
+function renderLayout() {
+  const leftContainer = document.getElementById('left-container');
+  leftContainer.innerHTML = '';
+  [1, 2, 3, 4].forEach(key => leftContainer.appendChild(createBedCard(key)));
+
+  const bed5Row = document.createElement('div');
+  bed5Row.className = 'side-by-side-row';
+  bed5Row.appendChild(createBedCard(5));
+  bed5Row.appendChild(createBedCard('monark-bike'));
+  leftContainer.appendChild(bed5Row);
+
+  const bed6Row = document.createElement('div');
+  bed6Row.className = 'side-by-side-row';
+  bed6Row.appendChild(createBedCard(6));
+  bed6Row.appendChild(createBedCard('nustep-left'));
+  leftContainer.appendChild(bed6Row);
+
+  const bed7Row = document.createElement('div');
+  bed7Row.className = 'side-by-side-row';
+  bed7Row.appendChild(createBedCard(7));
+  bed7Row.appendChild(createBedCard('theraband'));
+  leftContainer.appendChild(bed7Row);
+
+  const top2927 = document.getElementById('top-29-27');
+  top2927.innerHTML = '';
+  [29, 28, 27].forEach(num => top2927.appendChild(createBedCard(num)));
+  top2927.appendChild(createEmptyCell());
+  top2927.appendChild(createEmptyCell());
+
+  const row2125 = document.getElementById('row-21-25');
+  row2125.innerHTML = '';
+  [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
+
+  const mid1815 = document.getElementById('mid-18-15');
+  mid1815.innerHTML = '';
+  mid1815.appendChild(createBedCard(18));
+  mid1815.appendChild(createBedCard(17));
+  mid1815.appendChild(createEmptyCell());
+  mid1815.appendChild(createEmptyCell());
+  mid1815.appendChild(createBedCard(15));
+
+  const bottom1113 = document.getElementById('bottom-11-13');
+  bottom1113.innerHTML = '';
+  bottom1113.appendChild(createBedCard(11));
+  bottom1113.appendChild(createBedCard(12));
+  bottom1113.appendChild(createBedCard(13));
+  bottom1113.appendChild(createEmptyCell());
+  bottom1113.appendChild(createBedCard('nustep-bottom'));
+}
+
+function getDefaultDuration(bedKey, itemName) {
+  if (itemName === '拉頸' || itemName === '拉腰') return 20;
+  if (itemName === 'IFT') return 15;
+  if (itemName === 'ES 電療') return String(bedKey) === '7' ? 20 : 15;
+  return 15;
+}
+
+function updateTimeSelection(duration) {
+  selectedDuration = duration;
+  const timeContainer = document.getElementById('time-btn-container');
+  timeContainer.querySelectorAll('.option-btn').forEach(btn => {
+    btn.classList.toggle('selected', parseInt(btn.innerText) === duration);
+  });
+}
+
+function openModal(key) {
+  selectedBedKey = key;
+  const bed = beds[key];
+  document.getElementById('modal-title').innerText = `設定 ${bed.label || `${key} 號床`}`;
+  
+  const itemFormGroup = document.getElementById('item-form-group');
+
+  if (bed.isEquipment) {
+    itemFormGroup.style.display = 'none';
+    selectedItemText = bed.label;
+    selectedDuration = bed.defaultMins || 15;
+  } else {
+    itemFormGroup.style.display = 'block';
+    const itemContainer = document.getElementById('item-btn-container');
+    itemContainer.innerHTML = '';
+    const itemList = bedSpecificItems[key] || defaultItems;
+    selectedItemText = bed.item || itemList[0];
+    selectedDuration = getDefaultDuration(key, selectedItemText);
+
+    itemList.forEach(itemName => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `option-btn ${itemName === selectedItemText ? 'selected' : ''}`;
+      btn.innerText = itemName;
+      btn.onclick = () => {
+        itemContainer.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedItemText = itemName;
+        updateTimeSelection(getDefaultDuration(key, itemName));
+      };
+      itemContainer.appendChild(btn);
+    });
+  }
+
+  const timeContainer = document.getElementById('time-btn-container');
+  timeContainer.innerHTML = '';
+  timeOptions.forEach(mins => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `option-btn ${mins === selectedDuration ? 'selected' : ''}`;
+    btn.innerText = `${mins}分鐘`;
+    btn.onclick = () => {
+      timeContainer.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedDuration = mins;
+    };
+    timeContainer.appendChild(btn);
+  });
+
+  const physioSelect = document.getElementById('input-physio');
+  if (bed.status !== 'idle' && bed.physioId) {
+    physioSelect.value = bed.physioId;
+    document.getElementById('input-fall-risk').checked = bed.fallRisk || false;
+  } else {
+    physioSelect.value = localStorage.getItem('physio_id') || '008 W Chung';
+    document.getElementById('input-fall-risk').checked = false;
+  }
+  
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  if (window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+function saveBedState() {
+  const physio = document.getElementById('input-physio').value;
+  localStorage.setItem('physio_id', physio);
+  const fallRisk = document.getElementById('input-fall-risk').checked;
+
+  db.ref('beds/' + selectedBedKey).set({
+    status: 'busy',
+    physioId: physio,
+    item: selectedItemText,
+    startTime: Date.now(),
+    duration: selectedDuration,
+    fallRisk: fallRisk
+  });
+
+  closeModal();
+}
+
+function clearBedState() {
+  db.ref('beds/' + selectedBedKey).set({
+    status: 'idle',
+    isEquipment: beds[selectedBedKey].isEquipment || false,
+    defaultMins: beds[selectedBedKey].defaultMins || null,
+    icon: beds[selectedBedKey].icon || null,
+    label: beds[selectedBedKey].label || null
+  });
+  closeModal();
+}
+
+// 畫面每秒重繪倒計時
+setInterval(renderLayout, 1000);
+
+// NFC 網址自動辨識邏輯：檢查網址是否有 ?bed=X 參數
+function checkUrlParamsAndAutoOpen() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const bedParam = urlParams.get('bed');
+  if (bedParam && beds[bedParam]) {
+    openModal(bedParam);
+  }
+}
+
+populatePhysioDropdown();
+renderLayout();
+setTimeout(checkUrlParamsAndAutoOpen, 500);
+</script>
+</body>
+</html>
