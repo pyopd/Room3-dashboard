@@ -241,11 +241,13 @@
   <div class="right-container">
     <div class="area-top">
       <div class="grid-5" id="top-29-27"></div>
+      <div class="grid-5" id="mid-equipment-row"></div>
       <div class="grid-5" id="row-21-25"></div>
     </div>
     <div class="wall-divider"></div>
     <div class="area-bottom">
       <div class="grid-5" id="mid-18-15"></div>
+      <div class="grid-5" id="row-18-sub"></div>
       <div class="grid-5" id="bottom-11-13"></div>
     </div>
   </div>
@@ -345,10 +347,14 @@ const bedSpecificItems = {
   25: ['rPMS', '運動', 'HP'],
   27: ['Laser', '運動', 'IFT', '針灸'], 
   28: ['IFT', '運動', 'TENS'], 
-  29: ['IFT', '運動', 'TENS']
+  29: ['IFT', '運動', 'TENS'],
+  'chair-21-29': ['HP', '運動'],
+  'chair-21-25': ['HP', '運動'],
+  'chair-18-a': ['HP', '運動'],
+  'chair-18-b': ['HP', '運動']
 };
 
-const defaultItems = ['電療', 'HP', '運動', '超聲波'];
+const defaultItems = ['HP', '運動'];
 const timeOptions = [5, 10, 15, 20];
 
 let beds = {
@@ -361,7 +367,19 @@ let beds = {
   29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
   21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 25: { status: 'idle' },
   18: { status: 'idle' }, 17: { status: 'idle' }, 15: { status: 'idle' },
-  11: { status: 'idle' }, 12: { status: 'idle' }, 13: { status: 'idle' }
+  11: { status: 'idle' }, 12: { status: 'idle' }, 13: { status: 'idle' },
+  
+  // 新增區域：21號床上方椅子與 Pulley
+  'chair-21-29': { status: 'idle', icon: '🪑', label: '椅子 (近29床)' },
+  'chair-21-25': { status: 'idle', icon: '🪑', label: '椅子 (近25床)' },
+  'pulley-22-a': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
+  'pulley-22-b': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 2' },
+  'pulley-23':   { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 3' },
+
+  // 新增區域：18號床下方椅子與 Pulley
+  'chair-18-a': { status: 'idle', icon: '🪑', label: '椅子 A (近18床)' },
+  'chair-18-b': { status: 'idle', icon: '🪑', label: '椅子 B (近18床)' },
+  'pulley-18':   { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley (近18床)' }
 };
 
 let selectedBedKey = null;
@@ -502,6 +520,15 @@ function renderLayout() {
   top2927.appendChild(createEmptyCell());
   top2927.appendChild(createEmptyCell());
 
+  // 新增：21-23 號床上方的椅子與 Pulley 排列
+  const midEquipmentRow = document.getElementById('mid-equipment-row');
+  midEquipmentRow.innerHTML = '';
+  midEquipmentRow.appendChild(createBedCard('chair-21-29'));
+  midEquipmentRow.appendChild(createBedCard('chair-21-25'));
+  midEquipmentRow.appendChild(createBedCard('pulley-22-a'));
+  midEquipmentRow.appendChild(createBedCard('pulley-22-b'));
+  midEquipmentRow.appendChild(createBedCard('pulley-23'));
+
   const row2125 = document.getElementById('row-21-25');
   row2125.innerHTML = '';
   [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
@@ -514,6 +541,15 @@ function renderLayout() {
   mid1815.appendChild(createEmptyCell());
   mid1815.appendChild(createBedCard(15));
 
+  // 新增：18 號床下方的 2 張椅子與 1 個 Pulley
+  const row18Sub = document.getElementById('row-18-sub');
+  row18Sub.innerHTML = '';
+  row18Sub.appendChild(createBedCard('chair-18-a'));
+  row18Sub.appendChild(createBedCard('pulley-18'));
+  row18Sub.appendChild(createEmptyCell());
+  row18Sub.appendChild(createEmptyCell());
+  row18Sub.appendChild(createEmptyCell());
+
   const bottom1113 = document.getElementById('bottom-11-13');
   bottom1113.innerHTML = '';
   bottom1113.appendChild(createBedCard(11));
@@ -523,7 +559,6 @@ function renderLayout() {
   bottom1113.appendChild(createBedCard('nustep-bottom'));
 }
 
-// 預設時間判斷邏輯 (新增 Zimmer 為 20 分鐘)
 function getDefaultDuration(bedKey, itemName) {
   if (itemName === '拉頸' || itemName === '拉腰' || itemName === 'TENS' || itemName === 'Zimmer') return 20;
   if (itemName === 'IFT') return 15;
@@ -550,7 +585,7 @@ function openModal(key) {
   if (bed.isEquipment) {
     itemFormGroup.style.display = 'none';
     selectedItemText = bed.label;
-    selectedDuration = bed.duration || bed.defaultMins || 15;
+    selectedDuration = bed.duration || bed.defaultMins || 10;
   } else {
     itemFormGroup.style.display = 'block';
     const itemContainer = document.getElementById('item-btn-container');
