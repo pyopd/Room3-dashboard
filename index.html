@@ -66,6 +66,9 @@
     width: fit-content;
   }
 
+  .spacer-top-gap { margin-bottom: 14px; }
+  .spacer-bottom-gap { margin-top: 14px; }
+
   .wall-divider {
     height: 8px;
     background: repeating-linear-gradient(45deg, #334155, #334155 8px, #1e293b 8px, #1e293b 16px);
@@ -100,7 +103,6 @@
   .busy-warning { border-color: #facc15 !important; background: rgba(250, 204, 21, 0.12); }
   .done { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.15); animation: pulse-red 1.5s infinite; }
   
-  /* 助理帶位 (咖喱黃色) */
   .waiting-start { 
     border-color: #d97706 !important; 
     background: rgba(217, 119, 6, 0.18); 
@@ -135,7 +137,6 @@
     outline-offset: -1px;
   }
   
-  /* 頂部標籤樣式 */
   .top-badge {
     position: absolute; 
     top: -11px; 
@@ -240,15 +241,15 @@
   <div class="corridor">中央通道</div>
   <div class="right-container">
     <div class="area-top">
-      <div class="grid-5" id="top-29-27"></div>
+      <div class="grid-5 spacer-top-gap" id="top-29-27"></div>
       <div class="grid-5" id="mid-equipment-row"></div>
       <div class="grid-5" id="row-21-25"></div>
     </div>
     <div class="wall-divider"></div>
     <div class="area-bottom">
-      <div class="grid-5" id="mid-18-15"></div>
+      <div class="grid-5" id="mid-18-17"></div>
       <div class="grid-5" id="row-18-sub"></div>
-      <div class="grid-5" id="bottom-11-13"></div>
+      <div class="grid-5 spacer-bottom-gap" id="bottom-11-13"></div>
     </div>
   </div>
 </div>
@@ -344,7 +345,7 @@ const bedSpecificItems = {
   22: ['運動', 'Hot Magner', 'HP', 'TENS'], 
   23: ['Zimmer', '運動', 'HP', 'TENS'],
   24: ['運動', 'Shockwave', '針灸', 'ES 電療', 'HP', 'TENS'], 
-  25: ['rPMS', '運動', 'HP'],
+  25: ['HP', '運動'],
   27: ['Laser', '運動', 'IFT', '針灸'], 
   28: ['IFT', '運動', 'TENS'], 
   29: ['IFT', '運動', 'TENS'],
@@ -357,29 +358,29 @@ const bedSpecificItems = {
 const defaultItems = ['HP', '運動'];
 const timeOptions = [5, 10, 15, 20];
 
+// disableAssistant 機種清單：Pulley, Nustep, Bike, Parallel Bar
 let beds = {
   1: { status: 'idle' }, 2: { status: 'idle' }, 3: { status: 'idle' }, 4: { status: 'idle' },
   5: { status: 'idle' }, 6: { status: 'idle' }, 7: { status: 'idle' },
   'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, icon: '🎗️', label: 'Theraband' },
-  'nustep-left': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🚴', label: 'NuStep' },
-  'monark-bike': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🚴', label: 'Monark Bike' },
-  'nustep-bottom': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🚴', label: 'NuStep' },
+  'parallel-bar-left': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚶', label: 'Parallel Bar' },
+  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚴', label: 'Monark Bike' },
   29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
-  21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 25: { status: 'idle' },
+  21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 
+  25: { status: 'idle', icon: '🪑', label: '25 號大椅子' },
   18: { status: 'idle' }, 17: { status: 'idle' }, 15: { status: 'idle' },
   11: { status: 'idle' }, 12: { status: 'idle' }, 13: { status: 'idle' },
   
-  // 新增區域：21號床上方椅子與 Pulley
-  'chair-21-29': { status: 'idle', icon: '🪑', label: '椅子 (近29床)' },
-  'chair-21-25': { status: 'idle', icon: '🪑', label: '椅子 (近25床)' },
-  'pulley-22-a': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
-  'pulley-22-b': { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 2' },
-  'pulley-23':   { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 3' },
+  // 簡化名稱 (向29床, 向25床等)
+  'chair-21-29': { status: 'idle', icon: '🪑', label: '椅子 (向29床)' },
+  'chair-21-25': { status: 'idle', icon: '🪑', label: '椅子 (向25床)' },
+  'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
+  'pulley-22-b': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 2' },
+  'pulley-23':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 3' },
 
-  // 新增區域：18號床下方椅子與 Pulley
-  'chair-18-a': { status: 'idle', icon: '🪑', label: '椅子 A (近18床)' },
-  'chair-18-b': { status: 'idle', icon: '🪑', label: '椅子 B (近18床)' },
-  'pulley-18':   { status: 'idle', isEquipment: true, defaultMins: 10, icon: '🏋️', label: 'Pulley (近18床)' }
+  'chair-18-a': { status: 'idle', icon: '🪑', label: '椅子 (向11床)' },
+  'chair-18-b': { status: 'idle', icon: '🪑', label: '椅子 (向15床)' },
+  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley (近18床)' }
 };
 
 let selectedBedKey = null;
@@ -505,7 +506,7 @@ function renderLayout() {
   const bed6Row = document.createElement('div');
   bed6Row.className = 'side-by-side-row';
   bed6Row.appendChild(createBedCard(6));
-  bed6Row.appendChild(createBedCard('nustep-left'));
+  bed6Row.appendChild(createBedCard('parallel-bar-left'));
   leftContainer.appendChild(bed6Row);
 
   const bed7Row = document.createElement('div');
@@ -520,7 +521,6 @@ function renderLayout() {
   top2927.appendChild(createEmptyCell());
   top2927.appendChild(createEmptyCell());
 
-  // 新增：21-23 號床上方的椅子與 Pulley 排列
   const midEquipmentRow = document.getElementById('mid-equipment-row');
   midEquipmentRow.innerHTML = '';
   midEquipmentRow.appendChild(createBedCard('chair-21-29'));
@@ -533,22 +533,21 @@ function renderLayout() {
   row2125.innerHTML = '';
   [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
 
-  const mid1815 = document.getElementById('mid-18-15');
-  mid1815.innerHTML = '';
-  mid1815.appendChild(createBedCard(18));
-  mid1815.appendChild(createBedCard(17));
-  mid1815.appendChild(createEmptyCell());
-  mid1815.appendChild(createEmptyCell());
-  mid1815.appendChild(createBedCard(15));
+  const mid1817 = document.getElementById('mid-18-17');
+  mid1817.innerHTML = '';
+  mid1817.appendChild(createBedCard(18));
+  mid1817.appendChild(createBedCard(17));
+  mid1817.appendChild(createEmptyCell());
+  mid1817.appendChild(createEmptyCell());
+  mid1817.appendChild(createEmptyCell());
 
-  // 新增：18 號床下方的 2 張椅子與 1 個 Pulley
   const row18Sub = document.getElementById('row-18-sub');
   row18Sub.innerHTML = '';
   row18Sub.appendChild(createBedCard('chair-18-a'));
+  row18Sub.appendChild(createBedCard('chair-18-b'));
   row18Sub.appendChild(createBedCard('pulley-18'));
   row18Sub.appendChild(createEmptyCell());
-  row18Sub.appendChild(createEmptyCell());
-  row18Sub.appendChild(createEmptyCell());
+  row18Sub.appendChild(createBedCard(15));
 
   const bottom1113 = document.getElementById('bottom-11-13');
   bottom1113.innerHTML = '';
@@ -556,7 +555,7 @@ function renderLayout() {
   bottom1113.appendChild(createBedCard(12));
   bottom1113.appendChild(createBedCard(13));
   bottom1113.appendChild(createEmptyCell());
-  bottom1113.appendChild(createBedCard('nustep-bottom'));
+  bottom1113.appendChild(createEmptyCell());
 }
 
 function getDefaultDuration(bedKey, itemName) {
@@ -648,7 +647,8 @@ function openModal(key) {
   } else {
     submitBtn.innerText = '▶️ 開始治療 (治療師)';
     submitBtn.className = 'btn btn-start';
-    waitBtn.style.display = 'inline-block';
+    // 若設備設定了 disableAssistant，則隱藏助理帶位按鈕
+    waitBtn.style.display = bed.disableAssistant ? 'none' : 'inline-block';
   }
 
   if (bed.queue && bed.queue.length > 0) {
@@ -743,6 +743,7 @@ function clearBedState() {
     db.ref('beds/' + selectedBedKey).set({
       status: 'idle',
       isEquipment: currentBed.isEquipment || false,
+      disableAssistant: currentBed.disableAssistant || false,
       defaultMins: currentBed.defaultMins || null,
       icon: currentBed.icon || null,
       label: currentBed.label || null
