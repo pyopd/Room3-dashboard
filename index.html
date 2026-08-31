@@ -530,29 +530,25 @@ function renderLayout() {
   midEquipmentRow.appendChild(createBedCard('chair-21-25'));
   midEquipmentRow.appendChild(createBedCard('pulley-22-a'));
   midEquipmentRow.appendChild(createBedCard('pulley-22-b'));
-  midEquipmentRow.appendChild(createBedCard('pulley-23'));
+  midEquipmentRow.appendChild(createBedCard('pulley-23')); // Pulley 4 在第 5 格 (最右邊)
 
-  const row2125 = document.getElementById('row-21-25');
-  row2125.innerHTML = '';
-  [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
-
-  /* 修改位置：15號床左移一格，Parallel Bar 移至 15號床右邊 (第4格) */
+  /* 排版更新：17號與15號床中間空一格，15號床在第4格(對齊24號床)，Parallel Bar 在第5格(對齊Pulley 4) */
   const mid1817 = document.getElementById('mid-18-17');
   mid1817.innerHTML = '';
   mid1817.appendChild(createBedCard(18));
   mid1817.appendChild(createBedCard(17));
+  mid1817.appendChild(createEmptyCell());
   mid1817.appendChild(createBedCard(15));
   mid1817.appendChild(createBedCard('parallel-bar'));
-  mid1817.appendChild(createEmptyCell());
 
-  /* 修改位置：在 Parallel Bar 下方新增 NuStep 2 (第4格) */
+  /* 排版更新：Pulley 1 (第3格) 與 NuStep 2 (第5格) 中間留空一格 (第4格)，NuStep 2 在最右邊對齊 Parallel Bar 及 Pulley 4 */
   const row18Sub = document.getElementById('row-18-sub');
   row18Sub.innerHTML = '';
   row18Sub.appendChild(createBedCard('chair-18-a'));
   row18Sub.appendChild(createBedCard('chair-18-b'));
   row18Sub.appendChild(createBedCard('pulley-18'));
-  row18Sub.appendChild(createBedCard('nustep-2'));
   row18Sub.appendChild(createEmptyCell());
+  row18Sub.appendChild(createBedCard('nustep-2'));
 
   const bottom1113 = document.getElementById('bottom-11-13');
   bottom1113.innerHTML = '';
