@@ -376,13 +376,13 @@ let beds = {
   
   'chair-21-29': { status: 'idle', icon: '🪑', label: '椅子 (向29床)' },
   'chair-21-25': { status: 'idle', icon: '🪑', label: '椅子 (向25床)' },
-  'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
-  'pulley-22-b': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 2' },
-  'pulley-23':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 3' },
+  'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 2' },
+  'pulley-22-b': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 3' },
+  'pulley-23':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 4' },
 
   'chair-18-a': { status: 'idle', icon: '🪑', label: '椅子 (向11床)' },
   'chair-18-b': { status: 'idle', icon: '🪑', label: '椅子 (向15床)' },
-  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley (近18床)' },
+  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
   'parallel-bar': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚶', label: 'Parallel Bar' }
 };
 
@@ -638,7 +638,6 @@ function openModal(key) {
   const waitBtn = document.getElementById('btn-wait');
   waitBtn.style.display = bed.disableAssistant ? 'none' : 'inline-block';
 
-  // 💡 關鍵判斷：只有當床位不是空置 (idle) 時，才顯示「加入排隊」按鈕
   const rowQueueBtn = document.getElementById('row-queue-btn');
   if (bed.status === 'idle') {
     rowQueueBtn.style.display = 'none';
