@@ -284,7 +284,7 @@
 
     <div class="btn-group">
       <div class="btn-row">
-        <button class="btn btn-start" id="btn-submit" onclick="handleFormSubmit('busy')">▶️ 開始治療 (治療師)</button>
+        <button class="btn btn-start" id="btn-submit" onclick="handleFormSubmit('busy')">▶️ 開始治療</button>
         <button class="btn btn-wait" id="btn-wait" onclick="handleFormSubmit('waiting')">⏳ 助理帶位 (等候開機)</button>
       </div>
       <div class="btn-row">
@@ -327,6 +327,11 @@ function populatePhysioDropdown() {
   });
 }
 
+// 治療項目更新：
+// - 11, 12 號床：增加「運動」
+// - 13 號床：取消「拉頸」，改為「超聲波」，增加「運動」
+// - 21, 22 號床：增加「IFT」,「emtt磁療」
+// - 所有椅子（除 25 號）：增加「TENS」
 const bedSpecificItems = {
   1: ['ES 電療', 'HP', 'IFT', '運動', 'TENS'], 
   2: ['拉腰', 'HP', 'TENS'], 
@@ -335,35 +340,34 @@ const bedSpecificItems = {
   5: ['拉腰', 'HP', 'TENS'], 
   6: ['拉腰', 'HP', 'TENS'],
   7: ['拉頸', 'ES 電療', 'HP'], 
-  11: ['拉頸', 'ES 電療', 'Shockwave'],
-  12: ['拉頸', 'ES 電療'], 
-  13: ['拉頸', 'ES 電療'], 
+  11: ['拉頸', 'ES 電療', 'Shockwave', '運動'],
+  12: ['拉頸', 'ES 電療', '運動'], 
+  13: ['超聲波', 'ES 電療', '運動'], 
   15: ['IFT', '運動', 'TENS'],
   17: ['IFT', '運動', 'HP', 'TENS'], 
   18: ['IFT', '運動', 'HP', 'TENS'], 
-  21: ['Zimmer', '運動', 'HP', 'TENS'],
-  22: ['運動', 'Hot Magner', 'HP', 'TENS'], 
+  21: ['Zimmer', '運動', 'HP', 'TENS', 'IFT', 'emtt磁療'],
+  22: ['運動', 'Hot Magner', 'HP', 'TENS', 'IFT', 'emtt磁療'], 
   23: ['Zimmer', '運動', 'HP', 'TENS'],
   24: ['運動', 'Shockwave', '針灸', 'ES 電療', 'HP', 'TENS'], 
   25: ['HP', '運動'],
   27: ['Laser', '運動', 'IFT', '針灸'], 
   28: ['IFT', '運動', 'TENS'], 
   29: ['IFT', '運動', 'TENS'],
-  'chair-21-29': ['HP', '運動'],
-  'chair-21-25': ['HP', '運動'],
-  'chair-18-a': ['HP', '運動'],
-  'chair-18-b': ['HP', '運動']
+  'chair-21-29': ['HP', '運動', 'TENS'],
+  'chair-21-25': ['HP', '運動', 'TENS'],
+  'chair-18-a': ['HP', '運動', 'TENS'],
+  'chair-18-b': ['HP', '運動', 'TENS']
 };
 
-const defaultItems = ['HP', '運動'];
+const defaultItems = ['HP', '運動', 'TENS'];
 const timeOptions = [5, 10, 15, 20];
 
-// disableAssistant 機種清單：Pulley, Nustep, Bike, Parallel Bar
 let beds = {
   1: { status: 'idle' }, 2: { status: 'idle' }, 3: { status: 'idle' }, 4: { status: 'idle' },
   5: { status: 'idle' }, 6: { status: 'idle' }, 7: { status: 'idle' },
   'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, icon: '🎗️', label: 'Theraband' },
-  'parallel-bar-left': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚶', label: 'Parallel Bar' },
+  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚴', label: 'NuStep' },
   'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚴', label: 'Monark Bike' },
   29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
   21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 
@@ -371,7 +375,6 @@ let beds = {
   18: { status: 'idle' }, 17: { status: 'idle' }, 15: { status: 'idle' },
   11: { status: 'idle' }, 12: { status: 'idle' }, 13: { status: 'idle' },
   
-  // 簡化名稱 (向29床, 向25床等)
   'chair-21-29': { status: 'idle', icon: '🪑', label: '椅子 (向29床)' },
   'chair-21-25': { status: 'idle', icon: '🪑', label: '椅子 (向25床)' },
   'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
@@ -380,7 +383,8 @@ let beds = {
 
   'chair-18-a': { status: 'idle', icon: '🪑', label: '椅子 (向11床)' },
   'chair-18-b': { status: 'idle', icon: '🪑', label: '椅子 (向15床)' },
-  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley (近18床)' }
+  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley (近18床)' },
+  'parallel-bar': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚶', label: 'Parallel Bar' }
 };
 
 let selectedBedKey = null;
@@ -503,10 +507,11 @@ function renderLayout() {
   bed5Row.appendChild(createBedCard('monark-bike'));
   leftContainer.appendChild(bed5Row);
 
+  // 6 號床右邊改為 NuStep
   const bed6Row = document.createElement('div');
   bed6Row.className = 'side-by-side-row';
   bed6Row.appendChild(createBedCard(6));
-  bed6Row.appendChild(createBedCard('parallel-bar-left'));
+  bed6Row.appendChild(createBedCard('nustep'));
   leftContainer.appendChild(bed6Row);
 
   const bed7Row = document.createElement('div');
@@ -533,21 +538,23 @@ function renderLayout() {
   row2125.innerHTML = '';
   [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
 
+  // 15 號床放在 17 號床右側（即原本 18 下方右側位置之上）
   const mid1817 = document.getElementById('mid-18-17');
   mid1817.innerHTML = '';
   mid1817.appendChild(createBedCard(18));
   mid1817.appendChild(createBedCard(17));
   mid1817.appendChild(createEmptyCell());
   mid1817.appendChild(createEmptyCell());
-  mid1817.appendChild(createEmptyCell());
+  mid1817.appendChild(createBedCard(15));
 
+  // 18號床下方順序：向11床椅子 -> 向15床椅子 -> Pulley -> 空格 -> Parallel Bar (原本15號床位置)
   const row18Sub = document.getElementById('row-18-sub');
   row18Sub.innerHTML = '';
   row18Sub.appendChild(createBedCard('chair-18-a'));
   row18Sub.appendChild(createBedCard('chair-18-b'));
   row18Sub.appendChild(createBedCard('pulley-18'));
   row18Sub.appendChild(createEmptyCell());
-  row18Sub.appendChild(createBedCard(15));
+  row18Sub.appendChild(createBedCard('parallel-bar'));
 
   const bottom1113 = document.getElementById('bottom-11-13');
   bottom1113.innerHTML = '';
@@ -560,7 +567,7 @@ function renderLayout() {
 
 function getDefaultDuration(bedKey, itemName) {
   if (itemName === '拉頸' || itemName === '拉腰' || itemName === 'TENS' || itemName === 'Zimmer') return 20;
-  if (itemName === 'IFT') return 15;
+  if (itemName === 'IFT' || itemName === '超聲波' || itemName === 'emtt磁療') return 15;
   if (itemName === 'ES 電療') return String(bedKey) === '7' ? 20 : 15;
   return 15;
 }
@@ -636,18 +643,18 @@ function openModal(key) {
   const queueSection = document.getElementById('queue-section');
   const queueListContainer = document.getElementById('queue-list-container');
 
+  // 取消治療師字樣，統一稱為「▶️ 開始治療」
   if (bed.status === 'busy') {
     submitBtn.innerText = '➕ 加入排隊';
     submitBtn.className = 'btn btn-queue';
     waitBtn.style.display = 'none';
   } else if (bed.status === 'waiting') {
-    submitBtn.innerText = '▶️ 開始治療 (治療師)';
+    submitBtn.innerText = '▶️ 開始治療';
     submitBtn.className = 'btn btn-start';
     waitBtn.style.display = 'none';
   } else {
-    submitBtn.innerText = '▶️ 開始治療 (治療師)';
+    submitBtn.innerText = '▶️ 開始治療';
     submitBtn.className = 'btn btn-start';
-    // 若設備設定了 disableAssistant，則隱藏助理帶位按鈕
     waitBtn.style.display = bed.disableAssistant ? 'none' : 'inline-block';
   }
 
