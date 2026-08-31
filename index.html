@@ -313,8 +313,8 @@ const db = firebase.database();
 
 const physioList = [
   "001 A Chan", "002 J Yeung", "004 N Yuen", "006 S Wan", "008 W Chung",
-  "009 A Lau", "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung",
-  "014 E Wong", "015 C Lam", "016 T Fan", "017 A Yau", "018 A Yau",
+  "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung", "014 E Wong",
+  "015 C Lam", "016 T Fan", "017 KY Yau", "018 WM Yau", "019 A Lau",
   "022 N Sze", "023 J Chan", "111 A Wong", "112 C Wong", "113 P Leung",
   "115 J Pang", "118 J Fung", "119 A Ma", "201 W Cheung", "221 A Leung",
   "321 M Chan", "454 C Tai", "455 C So", "534 W Li", "794 I Tsang", "799 J Yu"
@@ -338,15 +338,15 @@ const bedSpecificItems = {
   4: ['拉腰', 'HP', 'TENS'], 
   5: ['拉腰', 'HP', 'TENS'], 
   6: ['拉腰', 'HP', 'TENS'],
-  7: ['拉頸', 'ES 電療', 'HP'], 
+  7: ['ES 電療', '拉頸', 'HP'], 
   11: ['拉頸', 'ES 電療', 'Shockwave', '運動'],
   12: ['拉頸', 'ES 電療', '運動'], 
-  13: ['超聲波', 'ES 電療', '運動'], 
+  13: ['ES 電療', '超聲波', '運動'], 
   15: ['IFT', '運動', 'TENS'],
   17: ['IFT', '運動', 'HP', 'TENS'], 
   18: ['IFT', '運動', 'HP', 'TENS'], 
   21: ['Zimmer', '運動', 'HP', 'TENS', 'IFT', 'emtt磁療'],
-  22: ['運動', 'Hot Magner', 'HP', 'TENS', 'IFT', 'emtt磁療'], 
+  22: ['Hot Magner', '運動', 'HP', 'TENS', 'IFT', 'emtt磁療'], 
   23: ['Zimmer', '運動', 'HP', 'TENS'],
   24: ['運動', 'Shockwave', '針灸', 'ES 電療', 'HP', 'TENS'], 
   25: ['rPMS'],
@@ -564,8 +564,8 @@ function renderLayout() {
 
 function getDefaultDuration(bedKey, itemName) {
   if (itemName === '拉頸' || itemName === '拉腰' || itemName === 'TENS' || itemName === 'Zimmer' || itemName === 'rPMS') return 20;
-  if (itemName === 'IFT' || itemName === '超聲波' || itemName === 'emtt磁療') return 15;
-  if (itemName === 'ES 電療') return String(bedKey) === '7' ? 20 : 15;
+  if (itemName === 'IFT' || itemName === '超聲波' || itemName === 'emtt磁療' || itemName === 'Hot Magner') return 15;
+  if (itemName === 'ES 電療') return (String(bedKey) === '7' || String(bedKey) === '13') ? 20 : 15;
   return 15;
 }
 
