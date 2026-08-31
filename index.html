@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>物理治療Room 3 即時看板</title>
+<title>Room 3 即時看板</title>
 <!-- 引入 Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -137,7 +137,6 @@
     outline-offset: -1px;
   }
   
-  /* 統一頂部標籤設計（防跌、等候、限女） */
   .top-badge {
     position: absolute; 
     top: -11px; 
@@ -233,7 +232,7 @@
 <body>
 
 <header>
-  <h1>🏥 物理治療Room 3 即時看板</h1>
+  <h1>🏥 Room 3 即時看板</h1>
   <p>點擊床位/設備設定治療項目、時間、防跌、女性處理及排隊預約</p>
 </header>
 
@@ -328,8 +327,6 @@ function populatePhysioDropdown() {
   });
 }
 
-// 治療項目更新：
-// - 25 號大椅子：僅有「rPMS」
 const bedSpecificItems = {
   1: ['ES 電療', 'HP', 'IFT', '運動', 'TENS'], 
   2: ['拉腰', 'HP', 'TENS'], 
@@ -448,7 +445,6 @@ function createBedCard(key) {
   let fallTag = (bed.fallRisk && bed.status !== 'idle') ? `<div class="top-badge fall-badge">⚠️防跌</div>` : '';
   let femaleTag = (bed.femaleOnly && bed.status !== 'idle') ? `<div class="top-badge female-badge">🌸限女</div>` : '';
   
-  // 排隊標籤設定：在防跌與限女中間，顯示為「等候:X」，設計與字體完全一致
   let queueCount = (bed.queue && Array.isArray(bed.queue)) ? bed.queue.length : 0;
   let queueTag = queueCount > 0 ? `<div class="top-badge queue-badge">等候:${queueCount}</div>` : '';
 
