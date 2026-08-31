@@ -160,7 +160,6 @@
 
   .bed-header { display: flex; justify-content: space-between; align-items: center; }
   .bed-num { font-size: 0.85em; font-weight: 700; color: #f8fafc; }
-  .bed-icon { font-size: 0.75em; opacity: 0.6; }
   .physio-id { font-size: 0.75em; font-weight: 700; color: #38bdf8; }
   .item-name { font-size: 0.7em; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -365,25 +364,25 @@ const timeOptions = [5, 10, 15, 20];
 let beds = {
   1: { status: 'idle' }, 2: { status: 'idle' }, 3: { status: 'idle' }, 4: { status: 'idle' },
   5: { status: 'idle' }, 6: { status: 'idle' }, 7: { status: 'idle' },
-  'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, icon: '🎗️', label: 'Theraband' },
-  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚴', label: 'NuStep' },
-  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚴', label: 'Monark Bike' },
+  'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, label: 'Theraband' },
+  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep' },
+  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Monark Bike' },
   29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
   21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 
-  25: { status: 'idle', icon: '🪑', label: '25 號大椅子' },
+  25: { status: 'idle', label: '25 號大椅子' },
   18: { status: 'idle' }, 17: { status: 'idle' }, 15: { status: 'idle' },
   11: { status: 'idle' }, 12: { status: 'idle' }, 13: { status: 'idle' },
   
-  'chair-21-29': { status: 'idle', icon: '🪑', label: '椅子 (向29床)' },
-  'chair-21-25': { status: 'idle', icon: '🪑', label: '椅子 (向25床)' },
-  'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 2' },
-  'pulley-22-b': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 3' },
-  'pulley-23':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 4' },
+  'chair-21-29': { status: 'idle', label: '椅子 (向29床)' },
+  'chair-21-25': { status: 'idle', label: '椅子 (向25床)' },
+  'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 2' },
+  'pulley-22-b': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 3' },
+  'pulley-23':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 4' },
 
-  'chair-18-a': { status: 'idle', icon: '🪑', label: '椅子 (向11床)' },
-  'chair-18-b': { status: 'idle', icon: '🪑', label: '椅子 (向15床)' },
-  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🏋️', label: 'Pulley 1' },
-  'parallel-bar': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, icon: '🚶', label: 'Parallel Bar' }
+  'chair-18-a': { status: 'idle', label: '椅子 (向11床)' },
+  'chair-18-b': { status: 'idle', label: '椅子 (向15床)' },
+  'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 1' },
+  'parallel-bar': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Parallel Bar' }
 };
 
 let selectedBedKey = null;
@@ -426,7 +425,6 @@ function createBedCard(key) {
   const card = document.createElement('div');
   
   let displayName = bed.label || `${key} 號床`;
-  let displayIcon = bed.icon || '🛏️';
   let riskClass = (bed.fallRisk && bed.status !== 'idle') ? 'high-fall-risk' : '';
   
   let secondsLeft = calculateSecondsLeft(bed);
@@ -455,7 +453,7 @@ function createBedCard(key) {
   if (bed.status === 'idle') {
     card.innerHTML = `
       ${queueTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="bed-icon">${displayIcon}</span></div>
+      <div class="bed-header"><span class="bed-num">${displayName}</span></div>
       <div class="status-text" style="font-size:0.7em; font-weight:600;">🟢 空置</div>
     `;
   } else if (bed.status === 'waiting') {
@@ -749,7 +747,6 @@ function clearBedState() {
       isEquipment: currentBed.isEquipment || false,
       disableAssistant: currentBed.disableAssistant || false,
       defaultMins: currentBed.defaultMins || null,
-      icon: currentBed.icon || null,
       label: currentBed.label || null
     });
   }
