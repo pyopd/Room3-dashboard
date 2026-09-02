@@ -4,37 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Room 3 Real-Time Operations Dashboard</title>
+  
+  <!-- Firebase App & Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 20px; }
+    header { text-align: center; margin-bottom: 20px; }
+    header h1 { font-size: 1.5rem; color: #94a3b8; font-weight: 500; }
 
-    body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      padding: 20px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    header h1 {
-      font-size: 1.5rem;
-      color: #94a3b8;
-      font-weight: 500;
-    }
-
-    /* Grid Layout */
+    /* Dashboard UI Grid */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat( auto-fit, minmax(220px, 1fr) );
       gap: 15px;
-      max-width: 1000px;
+      max-width: 1400px;
       margin: 0 auto;
     }
 
@@ -43,142 +29,65 @@
       border: 2px solid #334155;
       border-radius: 12px;
       padding: 15px;
-      min-height: 120px;
+      min-height: 130px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       cursor: pointer;
       transition: all 0.2s ease;
-      position: relative;
     }
+    .bed-card:hover { border-color: #38bdf8; }
 
-    .bed-card:hover {
-      border-color: #38bdf8;
-    }
-
-    .bed-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .bed-title {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    .tags {
-      display: flex;
-      gap: 5px;
-    }
-
-    .tag {
-      font-size: 0.75rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: bold;
-    }
-
+    .bed-header { display: flex; justify-content: space-between; align-items: center; }
+    .bed-title { font-size: 1.1rem; font-weight: bold; }
+    
+    .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tag { font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
     .tag-fall { background-color: #ef4444; color: white; }
     .tag-female { background-color: #ec4899; color: white; }
-    .tag-waiting { background-color: #f59e0b; color: white; }
+    .status-dot { font-size: 0.8rem; color: #22c55e; }
 
-    .bed-body {
-      margin: 10px 0;
-    }
+    .bed-body { margin: 8px 0; }
+    .therapist-name { font-size: 0.85rem; color: #cbd5e1; }
+    .treatment-item { font-size: 1rem; font-weight: 600; color: #38bdf8; }
+    .timer-display { font-size: 1.6rem; font-weight: bold; text-align: right; font-family: monospace; }
 
-    .therapist-name {
-      font-size: 0.9rem;
-      color: #cbd5e1;
-    }
-
-    .treatment-item {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #38bdf8;
-    }
-
-    .timer-display {
-      font-size: 1.8rem;
-      font-weight: bold;
-      text-align: right;
-      font-family: monospace;
-    }
-
-    /* States */
-    .state-idle { border-color: #22c55e; }
-    .state-idle .status-dot { color: #22c55e; }
-    
-    .state-pre-alert {
-      border-color: #f59e0b;
-      animation: pulse-orange 1.5s infinite;
-    }
-
-    .state-complete {
-      border-color: #ef4444;
-      animation: pulse-red 1s infinite;
-    }
+    /* Warnings & Alerts */
+    .state-idle { border-color: #334155; }
+    .state-waiting { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.1); }
+    .state-pre-alert { border-color: #f59e0b; animation: pulse-orange 1.5s infinite; }
+    .state-complete { border-color: #ef4444; animation: pulse-red 1s infinite; }
 
     @keyframes pulse-orange {
       0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+      70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
       100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
     }
-
     @keyframes pulse-red {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
       100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
 
-    /* Modal */
+    /* Modal Styling */
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.75);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75); display: none;
+      justify-content: center; align-items: center; z-index: 1000;
     }
-
     .modal {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      border: 1px solid #475569;
+      background: #1e293b; padding: 20px; border-radius: 12px;
+      width: 90%; max-width: 400px; border: 1px solid #475569;
     }
-
-    .modal h2 { margin-bottom: 15px; }
-
     .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; }
-    .form-group select, .form-group input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: white;
+    .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem; }
+    .form-group select, .form-group input[type="text"] {
+      width: 100%; padding: 10px; border-radius: 6px;
+      background: #0f172a; border: 1px solid #334155; color: white;
     }
-
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+    .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
     .btn-primary { background: #0284c7; color: white; }
     .btn-danger { background: #ef4444; color: white; }
     .btn-secondary { background: #475569; color: white; }
@@ -190,14 +99,12 @@
     <h1>點擊床位/設備設定治療項目與時間</h1>
   </header>
 
-  <div class="dashboard-grid" id="grid-container">
-    <!-- 床位與設備動態生成 -->
-  </div>
+  <div class="dashboard-grid" id="grid-container"></div>
 
-  <!-- Modal 設定彈窗 -->
+  <!-- Modal Modal 設定選單 -->
   <div class="modal-overlay" id="setup-modal">
     <div class="modal">
-      <h2 id="modal-title">設定床位</h2>
+      <h2 id="modal-title" style="margin-bottom: 15px;">設定床位</h2>
       
       <div class="form-group">
         <label>治療師代號</label>
@@ -208,8 +115,8 @@
         </select>
       </div>
 
-      <!-- 治療項目 (手單車會自動隱藏) -->
-      <div class="form-group" id="treatment-items-group">
+      <!-- 治療項目（手單車會自動隱藏） -->
+      <div class="form-group" id="group-treatment">
         <label>選擇治療項目</label>
         <select id="modal-treatment">
           <option value="Zimmer">Zimmer</option>
@@ -220,7 +127,7 @@
       </div>
 
       <!-- 治療時間 -->
-      <div class="form-group" id="duration-group">
+      <div class="form-group" id="group-duration">
         <label>治療時間 (分鐘)</label>
         <select id="modal-duration">
           <option value="5">5分鐘</option>
@@ -230,102 +137,107 @@
         </select>
       </div>
 
-      <!-- 特殊需求設定 (手單車會自動隱藏助理選項) -->
-      <div class="form-group">
+      <!-- 特殊需求設定（手單車會自動隱藏選項） -->
+      <div class="form-group" id="group-special">
         <label>特殊需求設定</label>
-        <div id="assistant-option-group">
-          <label><input type="checkbox" id="modal-fall-risk"> ⚠️ 此病人有跌倒風險</label><br>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="modal-fall-risk"> ⚠️ 此病人有跌倒風險</label>
           <label><input type="checkbox" id="modal-female-only"> 🌸 需女性處理</label>
         </div>
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="startTimer()">開始治療</button>
-        <button class="btn btn-danger" onclick="resetBed()">清空床位</button>
+        <button class="btn btn-primary" onclick="saveToFirebase()">開始治療</button>
+        <button class="btn btn-danger" onclick="resetBedInFirebase()">清空床位</button>
         <button class="btn btn-secondary" onclick="closeModal()">取消</button>
       </div>
     </div>
   </div>
 
   <script>
-    // 設備與床位佈局資料結構
-    const layoutData = {
-      'bed-4': { name: '4 號床', type: 'bed' },
-      'monark-4': { name: 'Monark Bike', type: 'equipment', defaultDuration: 10 },
-      
-      'bed-5': { name: '5 號床', type: 'bed' },
-      'nustep-5': { name: 'NuStep', type: 'equipment', defaultDuration: 15 },
-      
-      'bed-6': { name: '6 號床', type: 'bed' },
-      'hand-bike-6': { 
-        name: '手單車', 
-        type: 'equipment_fixed', 
-        requiresAssistant: false, 
-        hasTreatmentOptions: false, 
-        defaultDuration: 10 
-      }
+    // 1. Firebase 設定（請替換為你的 Firebase Config）
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
-    // 狀態紀錄
-    let bedStates = {};
-    let activeKey = null;
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // 初始化頁面
-    function initDashboard() {
+    // 2. 完整床位與設備清單（包含新調整的 Monark, NuStep, 手單車）
+    const layoutItems = [
+      { key: 'bed-1', name: '1 號床', type: 'bed' },
+      { key: 'bed-2', name: '2 號床', type: 'bed' },
+      { key: 'bed-3', name: '3 號床', type: 'bed' },
+      { key: 'bed-4', name: '4 號床', type: 'bed' },
+      { key: 'monark-4', name: 'Monark Bike (4號右)', type: 'equipment' },
+      { key: 'bed-5', name: '5 號床', type: 'bed' },
+      { key: 'nustep-5', name: 'NuStep (5號右)', type: 'equipment' },
+      { key: 'bed-6', name: '6 號床', type: 'bed' },
+      { key: 'hand-bike-6', name: '手單車 (6號右)', type: 'equipment_fixed', noOptions: true, defaultTime: 10 },
+      { key: 'bed-7', name: '7 號床', type: 'bed' },
+      { key: 'bed-8', name: '8 號床', type: 'bed' },
+      { key: 'bed-9', name: '9 號床', type: 'bed' },
+      { key: 'bed-10', name: '10 號床', type: 'bed' },
+      { key: 'bed-15', name: '15 號床', type: 'bed' },
+      { key: 'bed-17', name: '17 號床', type: 'bed' },
+      { key: 'bed-22', name: '22 號床', type: 'bed' },
+      { key: 'bed-23', name: '23 號床', type: 'bed' },
+      { key: 'bed-24', name: '24 號床', type: 'bed' },
+      { key: 'bed-25', name: '25 號大椅子', type: 'chair' },
+      { key: 'parallel-bar', name: 'Parallel Bar', type: 'equipment' }
+    ];
+
+    let currentActiveKey = null;
+    let localState = {};
+
+    // 3. 初始化 UI 畫面
+    function renderGrid() {
       const container = document.getElementById('grid-container');
       container.innerHTML = '';
 
-      Object.keys(layoutData).forEach(key => {
-        const item = layoutData[key];
-        bedStates[key] = bedStates[key] || {
-          therapist: '',
-          treatment: '',
-          timeLeft: 0,
-          totalTime: 0,
-          isFallRisk: false,
-          isFemaleOnly: false,
-          timerId: null
-        };
-
+      layoutItems.forEach(item => {
         const card = document.createElement('div');
         card.className = 'bed-card state-idle';
-        card.id = `card-${key}`;
-        card.onclick = () => openModal(key);
+        card.id = `card-${item.key}`;
+        card.onclick = () => openModal(item.key);
 
         card.innerHTML = `
           <div class="bed-header">
             <span class="bed-title">${item.name}</span>
-            <div class="tags" id="tags-${key}">
+            <div class="tags" id="tags-${item.key}">
               <span class="status-dot">● 空置</span>
             </div>
           </div>
           <div class="bed-body">
-            <div class="therapist-name" id="therapist-${key}">--</div>
-            <div class="treatment-item" id="treatment-${key}">--</div>
+            <div class="therapist-name" id="therapist-${item.key}">--</div>
+            <div class="treatment-item" id="treatment-${item.key}">--</div>
           </div>
-          <div class="timer-display" id="timer-${key}">00:00</div>
+          <div class="timer-display" id="timer-${item.key}">00:00</div>
         `;
         container.appendChild(card);
       });
-
-      // 自動檢查 URL 中的 NFC 參數 (?bed=xxx)
-      checkUrlParamsAndAutoOpen();
     }
 
-    // 開啟 Modal 設定
+    // 4. 開啟 Modal (自動處理手單車專屬邏輯)
     function openModal(key) {
-      activeKey = key;
-      const item = layoutData[key];
-      document.getElementById('modal-title').innerText = `設定 ${item.name}`;
+      currentActiveKey = key;
+      const itemConfig = layoutItems.find(i => i.key === key);
+      document.getElementById('modal-title').innerText = `設定 ${itemConfig.name}`;
 
-      // 6 號床右邊「手單車」的特定隱藏與預設邏輯
-      if (key === 'hand-bike-6') {
-        document.getElementById('treatment-items-group').style.display = 'none';
-        document.getElementById('assistant-option-group').style.display = 'none';
-        document.getElementById('modal-duration').value = "10";
+      // 手單車特殊邏輯：隱藏項目選單與特殊標籤，並預設 10 分鐘
+      if (itemConfig.noOptions) {
+        document.getElementById('group-treatment').style.display = 'none';
+        document.getElementById('group-special').style.display = 'none';
+        document.getElementById('modal-duration').value = itemConfig.defaultTime || "10";
       } else {
-        document.getElementById('treatment-items-group').style.display = 'block';
-        document.getElementById('assistant-option-group').style.display = 'block';
+        document.getElementById('group-treatment').style.display = 'block';
+        document.getElementById('group-special').style.display = 'block';
       }
 
       document.getElementById('setup-modal').style.display = 'flex';
@@ -335,63 +247,61 @@
       document.getElementById('setup-modal').style.display = 'none';
     }
 
-    // 開始倒數
-    function startTimer() {
-      const state = bedStates[activeKey];
-      const item = layoutData[activeKey];
+    // 5. Firebase 資料儲存與重設
+    function saveToFirebase() {
+      if (!currentActiveKey) return;
+      const itemConfig = layoutItems.find(i => i.key === currentActiveKey);
 
-      state.therapist = document.getElementById('modal-therapist').value;
-      state.treatment = (activeKey === 'hand-bike-6') ? '手單車訓練' : document.getElementById('modal-treatment').value;
-      state.isFallRisk = document.getElementById('modal-fall-risk').checked;
-      state.isFemaleOnly = document.getElementById('modal-female-only').checked;
+      const therapist = document.getElementById('modal-therapist').value;
+      const duration = parseInt(document.getElementById('modal-duration').value);
       
-      const durationMin = parseInt(document.getElementById('modal-duration').value);
-      state.timeLeft = durationMin * 60;
-      state.totalTime = state.timeLeft;
+      const treatment = itemConfig.noOptions ? '手單車訓練' : document.getElementById('modal-treatment').value;
+      const isFallRisk = itemConfig.noOptions ? false : document.getElementById('modal-fall-risk').checked;
+      const isFemaleOnly = itemConfig.noOptions ? false : document.getElementById('modal-female-only').checked;
 
-      if (state.timerId) clearInterval(state.timerId);
+      const startTime = Date.now();
+      const endTime = startTime + (duration * 60 * 1000);
 
-      state.timerId = setInterval(() => {
-        state.timeLeft--;
-        updateCardUI(activeKey);
-        if (state.timeLeft <= 0) {
-          clearInterval(state.timerId);
-        }
-      }, 1000);
+      db.ref('beds/' + currentActiveKey).set({
+        therapist: therapist,
+        treatment: treatment,
+        duration: duration,
+        startTime: startTime,
+        endTime: endTime,
+        isFallRisk: isFallRisk,
+        isFemaleOnly: isFemaleOnly,
+        status: 'active'
+      });
 
-      updateCardUI(activeKey);
       closeModal();
     }
 
-    // 清空床位
-    function resetBed() {
-      const state = bedStates[activeKey];
-      if (state.timerId) clearInterval(state.timerId);
-      
-      bedStates[activeKey] = {
-        therapist: '',
-        treatment: '',
-        timeLeft: 0,
-        totalTime: 0,
-        isFallRisk: false,
-        isFemaleOnly: false,
-        timerId: null
-      };
-
-      updateCardUI(activeKey);
+    function resetBedInFirebase() {
+      if (!currentActiveKey) return;
+      db.ref('beds/' + currentActiveKey).remove();
       closeModal();
     }
 
-    // 更新 UI 畫面與 30 秒預警邏輯
-    function updateCardUI(key) {
-      const state = bedStates[key];
+    // 6. 監聽 Firebase 實時數據更新 (Realtime Sync)
+    db.ref('beds').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      localState = data;
+
+      layoutItems.forEach(item => {
+        const bedData = data[item.key];
+        updateCardUI(item.key, bedData);
+      });
+    });
+
+    // 7. 更新 UI 與 30 秒預警計時器
+    function updateCardUI(key, data) {
       const card = document.getElementById(`card-${key}`);
       const tagsContainer = document.getElementById(`tags-${key}`);
       const therapistEl = document.getElementById(`therapist-${key}`);
       const treatmentEl = document.getElementById(`treatment-${key}`);
       const timerEl = document.getElementById(`timer-${key}`);
 
-      if (state.timeLeft <= 0 && state.totalTime === 0) {
+      if (!data || data.status !== 'active') {
         card.className = 'bed-card state-idle';
         tagsContainer.innerHTML = `<span class="status-dot">● 空置</span>`;
         therapistEl.innerText = '--';
@@ -400,24 +310,27 @@
         return;
       }
 
-      // 更新 Tag
+      // 更新 Tags
       let tagsHTML = '';
-      if (state.isFallRisk) tagsHTML += `<span class="tag tag-fall">⚠️ 防跌</span>`;
-      if (state.isFemaleOnly) tagsHTML += `<span class="tag tag-female">🌸 限女</span>`;
+      if (data.isFallRisk) tagsHTML += `<span class="tag tag-fall">⚠️ 防跌</span>`;
+      if (data.isFemaleOnly) tagsHTML += `<span class="tag tag-female">🌸 限女</span>`;
       tagsContainer.innerHTML = tagsHTML;
 
-      therapistEl.innerText = state.therapist;
-      treatmentEl.innerText = state.treatment;
+      therapistEl.innerText = data.therapist;
+      treatmentEl.innerText = data.treatment;
 
-      // 時間格式化 (MM:SS)
-      const mins = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
-      const secs = (state.timeLeft % 60).toString().padStart(2, '0');
+      // 倒數計算
+      const now = Date.now();
+      const secondsLeft = Math.max(0, Math.floor((data.endTime - now) / 1000));
+
+      const mins = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+      const secs = (secondsLeft % 60).toString().padStart(2, '0');
       timerEl.innerText = `${mins}:${secs}`;
 
-      // 30 秒預警與完成提示狀態
-      if (state.timeLeft <= 30 && state.timeLeft > 0) {
+      // 預警狀態判斷
+      if (secondsLeft <= 30 && secondsLeft > 0) {
         card.className = 'bed-card state-pre-alert';
-      } else if (state.timeLeft === 0) {
+      } else if (secondsLeft === 0) {
         card.className = 'bed-card state-complete';
         timerEl.innerText = '時間到';
       } else {
@@ -425,17 +338,29 @@
       }
     }
 
-    // 讀取 NFC 帶入的 URL 參數 (?bed=xxx) 自動開啟 Modal
+    // 每秒本地重新計算倒數時間
+    setInterval(() => {
+      layoutItems.forEach(item => {
+        if (localState[item.key]) {
+          updateCardUI(item.key, localState[item.key]);
+        }
+      });
+    }, 1000);
+
+    // 8. 自動解析 NFC 網址 (?bed=xxx) 彈窗
     function checkUrlParamsAndAutoOpen() {
       const urlParams = new URLSearchParams(window.location.search);
       const bedParam = urlParams.get('bed');
-      if (bedParam && layoutData[bedParam]) {
-        setTimeout(() => openModal(bedParam), 300);
+      if (bedParam && layoutItems.some(i => i.key === bedParam)) {
+        setTimeout(() => openModal(bedParam), 500);
       }
     }
 
     // 啟動頁面
-    window.onload = initDashboard;
+    window.onload = () => {
+      renderGrid();
+      checkUrlParamsAndAutoOpen();
+    };
   </script>
 </body>
 </html>
