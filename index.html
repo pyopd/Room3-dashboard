@@ -232,7 +232,7 @@
 
 <header>
   <h1>🏥 Room 3 即時看板</h1>
-  <p>點擊床位/設備設定治療項目、時間、防跌、女性處理及排隊預約</p>
+  <p>點擊床位/設備設定治療項目及時間</p>
 </header>
 
 <div class="floor-plan">
@@ -364,8 +364,12 @@ let beds = {
   1: { status: 'idle' }, 2: { status: 'idle' }, 3: { status: 'idle' }, 4: { status: 'idle' },
   5: { status: 'idle' }, 6: { status: 'idle' }, 7: { status: 'idle' },
   'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, label: 'Theraband' },
-  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep' },
-  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Monark Bike' },
+  
+  // 👈 裝備位置調整
+  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Monark Bike' }, // 4號床右邊
+  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep' },           // 5號床右邊
+  'handbike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: '手單車' },         // 6號床右邊
+
   29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
   21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 
   25: { status: 'idle', label: '25 號大椅子' },
@@ -497,20 +501,30 @@ function createEmptyCell() {
 function renderLayout() {
   const leftContainer = document.getElementById('left-container');
   leftContainer.innerHTML = '';
-  [1, 2, 3, 4].forEach(key => leftContainer.appendChild(createBedCard(key)));
+  [1, 2, 3].forEach(key => leftContainer.appendChild(createBedCard(key)));
 
+  // 👈 4號床 Row -> 右邊放 Monark Bike
+  const bed4Row = document.createElement('div');
+  bed4Row.className = 'side-by-side-row';
+  bed4Row.appendChild(createBedCard(4));
+  bed4Row.appendChild(createBedCard('monark-bike'));
+  leftContainer.appendChild(bed4Row);
+
+  // 👈 5號床 Row -> 右邊放 NuStep
   const bed5Row = document.createElement('div');
   bed5Row.className = 'side-by-side-row';
   bed5Row.appendChild(createBedCard(5));
-  bed5Row.appendChild(createBedCard('monark-bike'));
+  bed5Row.appendChild(createBedCard('nustep'));
   leftContainer.appendChild(bed5Row);
 
+  // 👈 6號床 Row -> 右邊放 手單車 (handbike)
   const bed6Row = document.createElement('div');
   bed6Row.className = 'side-by-side-row';
   bed6Row.appendChild(createBedCard(6));
-  bed6Row.appendChild(createBedCard('nustep'));
+  bed6Row.appendChild(createBedCard('handbike'));
   leftContainer.appendChild(bed6Row);
 
+  // 7號床 Row -> 右邊放 Theraband
   const bed7Row = document.createElement('div');
   bed7Row.className = 'side-by-side-row';
   bed7Row.appendChild(createBedCard(7));
@@ -531,7 +545,6 @@ function renderLayout() {
   midEquipmentRow.appendChild(createBedCard('pulley-22-b'));
   midEquipmentRow.appendChild(createBedCard('pulley-23'));
 
-  /* 修正：加入 21 - 25 號床 (含 25 號大椅子) 的渲染 */
   const row2125 = document.getElementById('row-21-25');
   row2125.innerHTML = '';
   [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
