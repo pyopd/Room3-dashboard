@@ -25,10 +25,10 @@
   header h1 { font-size: 1.5em; color: #38bdf8; letter-spacing: 1px; }
   header p { color: #94a3b8; font-size: 0.8em; margin-top: 2px; }
 
-  /* 💡 修正：維持一整行且貼合床位大小的推薦欄 */
+  /* 快捷空位推薦欄 */
   .quick-avail-bar {
     display: flex;
-    flex-wrap: nowrap; /* 強制保持在同一行 */
+    flex-wrap: nowrap;
     gap: 8px;
     justify-content: center;
     background: #1e293b;
@@ -58,20 +58,17 @@
     border-color: #38bdf8;
     background: #1e293b;
   }
-  /* 治療項目名稱：適度加大清晰且不突兀 */
   .avail-label {
     font-weight: 700;
     font-size: 0.9em;
     color: #f8fafc;
     letter-spacing: 0.5px;
   }
-  /* 目標床號 */
   .avail-bed-target {
     font-weight: 700;
     font-size: 0.85em;
     color: #38bdf8;
   }
-  /* 狀態標籤 */
   .avail-time-tag {
     font-size: 0.75em;
     padding: 2px 6px;
@@ -293,7 +290,6 @@
   <p>點擊床位/設備設定治療項目及時間</p>
 </header>
 
-<!-- 💡 單行橫排的最快可用項目欄 -->
 <div class="quick-avail-bar" id="quick-avail-bar"></div>
 
 <div class="floor-plan">
@@ -406,7 +402,7 @@ const bedSpecificItems = {
   18: ['IFT', '運動', 'HP', 'TENS'], 
   21: ['Zimmer', '運動', 'HP', 'TENS', 'IFT', 'emtt磁療'],
   22: ['Hot Magner', '運動', 'HP', 'TENS', 'IFT', 'emtt磁療'], 
-  23: ['Zimmer', '運動', 'HP', 'TENS'],
+  23: ['Zimmer', '運動', 'HP', 'TENS'], // 已確認 23 床無 IFT
   24: ['運動', 'Shockwave', '針灸', 'ES 電療', 'HP', 'TENS'], 
   25: ['rPMS'],
   27: ['Laser', '運動', 'IFT', '針灸'], 
@@ -418,10 +414,11 @@ const bedSpecificItems = {
   'chair-18-b': ['HP', '運動', 'TENS']
 };
 
+// 💡 已移除 23 床，並依照「29 -> 28 -> 17 -> 18 -> 15 -> (21,22,27) -> 1」設定優先順序
 const serviceTargets = {
   '拉腰': [2, 3, 4, 5, 6],
   '拉頸': [7, 11, 12],
-  'IFT': [1, 15, 17, 18, 21, 22, 23, 27, 28, 29],
+  'IFT': [29, 28, 17, 18, 15, 21, 22, 27, 1],
   'Zimmer': [21, 23],
   'NuStep': ['nustep', 'nustep-2']
 };
@@ -526,6 +523,7 @@ function renderQuickAvailability() {
     let bestKey = candidateKeys[0];
     let minWaitSeconds = 999999;
 
+    // 依順序比對，若等候秒數更短才更新；相同時間保留最優先床位
     candidateKeys.forEach(k => {
       const wait = getBedTotalWaitSeconds(k);
       if (wait < minWaitSeconds) {
