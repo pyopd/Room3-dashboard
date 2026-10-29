@@ -25,6 +25,60 @@
   header h1 { font-size: 1.5em; color: #38bdf8; letter-spacing: 1px; }
   header p { color: #94a3b8; font-size: 0.8em; margin-top: 2px; }
 
+  /* 💡 新增：最快有位看板樣式 */
+  .quick-avail-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    max-width: 1060px;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .avail-chip {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .avail-chip:hover {
+    transform: translateY(-2px);
+    border-color: #38bdf8;
+    background: #1e293b;
+  }
+  .avail-label {
+    font-weight: 700;
+    font-size: 0.8em;
+    color: #cbd5e1;
+  }
+  .avail-bed-target {
+    font-weight: 800;
+    font-size: 0.85em;
+    color: #38bdf8;
+  }
+  .avail-time-tag {
+    font-size: 0.75em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  .avail-time-tag.free { background: #065f46; color: #34d399; }
+  .avail-time-tag.soon { background: #854d0e; color: #facc15; }
+  .avail-time-tag.busy { background: #991b1b; color: #f87171; }
+
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 24px auto;
@@ -140,17 +194,17 @@
   .top-badge {
     position: absolute; 
     top: -11px; 
-    color: #ffffff;
+    color: #ffffff; 
     font-size: 0.65em; 
-    font-weight: 800;
+    font-weight: 800; 
     padding: 1px 5px; 
-    border-radius: 8px;
-    border: 1.5px solid #ffffff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-    z-index: 10;
-    letter-spacing: 0.3px;
-    line-height: 1.1;
-    white-space: nowrap;
+    border-radius: 8px; 
+    border: 1.5px solid #ffffff; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4); 
+    z-index: 10; 
+    letter-spacing: 0.3px; 
+    line-height: 1.1; 
+    white-space: nowrap; 
   }
 
   .fall-badge { left: -4px; background: #dc2626; }
@@ -234,6 +288,9 @@
   <h1>🏥 Room 3 即時看板</h1>
   <p>點擊床位/設備設定治療項目及時間</p>
 </header>
+
+<!-- 💡 新增：最快可使用項目推薦欄 -->
+<div class="quick-avail-bar" id="quick-avail-bar"></div>
 
 <div class="floor-plan">
   <div class="left-container" id="left-container"></div>
@@ -357,6 +414,15 @@ const bedSpecificItems = {
   'chair-18-b': ['HP', '運動', 'TENS']
 };
 
+// 💡 追蹤熱門項目的分佈床位
+const serviceTargets = {
+  '拉腰': [2, 3, 4, 5, 6],
+  '拉頸': [7, 11, 12],
+  'IFT': [1, 15, 17, 18, 21, 22, 23, 27, 28, 29],
+  'Zimmer': [21, 23],
+  'NuStep': ['nustep', 'nustep-2']
+};
+
 const defaultItems = ['HP', '運動', 'TENS'];
 const timeOptions = [5, 10, 15, 20];
 
@@ -365,10 +431,9 @@ let beds = {
   5: { status: 'idle' }, 6: { status: 'idle' }, 7: { status: 'idle' },
   'theraband': { status: 'idle', isEquipment: true, defaultMins: 15, label: 'Theraband' },
   
-  // 👈 裝備位置調整
-  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Monark Bike' }, // 4號床右邊
-  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep' },           // 5號床右邊
-  'handbike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: '手單車' },         // 6號床右邊
+  'monark-bike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Monark Bike' },
+  'nustep': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep' },
+  'handbike': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: '手單車' },
 
   29: { status: 'idle' }, 28: { status: 'idle' }, 27: { status: 'idle' },
   21: { status: 'idle' }, 22: { status: 'idle' }, 23: { status: 'idle' }, 24: { status: 'idle' }, 
@@ -422,6 +487,81 @@ function calculateSecondsLeft(bed) {
 function calculateWaitSeconds(bed) {
   if (bed.status !== 'waiting' || !bed.waitTime) return 0;
   return Math.floor((Date.now() - bed.waitTime) / 1000);
+}
+
+// 💡 計算每張床距離「完全空出」的總預估剩餘秒數（包含目前進行中 + 排隊時間）
+function getBedTotalWaitSeconds(key) {
+  const bed = beds[key];
+  if (!bed) return 999999;
+  
+  let queueWaitSeconds = 0;
+  if (bed.queue && Array.isArray(bed.queue)) {
+    queueWaitSeconds = bed.queue.reduce((acc, q) => acc + (q.duration || 15) * 60, 0);
+  }
+
+  if (bed.status === 'idle') {
+    return queueWaitSeconds; // 沒人做，看有沒有預先排隊
+  }
+  
+  if (bed.status === 'waiting') {
+    // 助理帶位中，預設等候該項目的時間
+    return (bed.duration || 15) * 60 + queueWaitSeconds;
+  }
+  
+  if (bed.status === 'busy') {
+    const secLeft = calculateSecondsLeft(bed);
+    return secLeft + queueWaitSeconds;
+  }
+
+  return queueWaitSeconds;
+}
+
+// 💡 渲染頂部的「下一個最快可用床位」
+function renderQuickAvailability() {
+  const container = document.getElementById('quick-avail-bar');
+  if (!container) return;
+  container.innerHTML = '';
+
+  Object.entries(serviceTargets).forEach(([serviceName, candidateKeys]) => {
+    let bestKey = candidateKeys[0];
+    let minWaitSeconds = 999999;
+
+    candidateKeys.forEach(k => {
+      const wait = getBedTotalWaitSeconds(k);
+      if (wait < minWaitSeconds) {
+        minWaitSeconds = wait;
+        bestKey = k;
+      }
+    });
+
+    const targetBed = beds[bestKey];
+    const bedName = targetBed.label || `${bestKey}號床`;
+
+    let tagClass = 'free';
+    let timeText = '即時有位';
+
+    if (minWaitSeconds === 0) {
+      tagClass = 'free';
+      timeText = '🟢 即時有位';
+    } else if (minWaitSeconds <= 180) {
+      tagClass = 'soon';
+      timeText = `🟡 約 ${Math.ceil(minWaitSeconds / 60)} 分鐘`;
+    } else {
+      tagClass = 'busy';
+      timeText = `🔴 約 ${Math.ceil(minWaitSeconds / 60)} 分鐘`;
+    }
+
+    const chip = document.createElement('div');
+    chip.className = 'avail-chip';
+    chip.title = `點擊直接開啟 ${bedName}`;
+    chip.onclick = () => openModal(bestKey);
+    chip.innerHTML = `
+      <span class="avail-label">${serviceName}</span>
+      <span class="avail-bed-target">${bedName}</span>
+      <span class="avail-time-tag ${tagClass}">${timeText}</span>
+    `;
+    container.appendChild(chip);
+  });
 }
 
 function createBedCard(key) {
@@ -499,25 +639,28 @@ function createEmptyCell() {
 }
 
 function renderLayout() {
+  // 💡 同步渲染推薦位置欄
+  renderQuickAvailability();
+
   const leftContainer = document.getElementById('left-container');
   leftContainer.innerHTML = '';
   [1, 2, 3].forEach(key => leftContainer.appendChild(createBedCard(key)));
 
-  // 👈 4號床 Row -> 右邊放 Monark Bike
+  // 4號床 Row -> 右邊放 Monark Bike
   const bed4Row = document.createElement('div');
   bed4Row.className = 'side-by-side-row';
   bed4Row.appendChild(createBedCard(4));
   bed4Row.appendChild(createBedCard('monark-bike'));
   leftContainer.appendChild(bed4Row);
 
-  // 👈 5號床 Row -> 右邊放 NuStep
+  // 5號床 Row -> 右邊放 NuStep
   const bed5Row = document.createElement('div');
   bed5Row.className = 'side-by-side-row';
   bed5Row.appendChild(createBedCard(5));
   bed5Row.appendChild(createBedCard('nustep'));
   leftContainer.appendChild(bed5Row);
 
-  // 👈 6號床 Row -> 右邊放 手單車 (handbike)
+  // 6號床 Row -> 右邊放 手單車 (handbike)
   const bed6Row = document.createElement('div');
   bed6Row.className = 'side-by-side-row';
   bed6Row.appendChild(createBedCard(6));
