@@ -25,30 +25,30 @@
   header h1 { font-size: 1.5em; color: #38bdf8; letter-spacing: 1px; }
   header p { color: #94a3b8; font-size: 0.8em; margin-top: 2px; }
 
-  /* 💡 新增：最快有位看板樣式 */
+  /* 💡 放大後的快捷空位看板樣式 */
   .quick-avail-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
     background: #1e293b;
     border: 1px solid #334155;
-    padding: 10px 14px;
-    border-radius: 10px;
-    margin-bottom: 14px;
-    max-width: 1060px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    max-width: 1100px;
     width: 100%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
   }
 
   .avail-chip {
     background: #0f172a;
-    border: 1px solid #475569;
-    border-radius: 8px;
-    padding: 6px 10px;
+    border: 1.5px solid #475569;
+    border-radius: 9px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     transition: all 0.2s;
     user-select: none;
@@ -57,21 +57,26 @@
     transform: translateY(-2px);
     border-color: #38bdf8;
     background: #1e293b;
+    box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
   }
+  /* 加大項目名稱字體 (如：拉腰、拉頸) */
   .avail-label {
-    font-weight: 700;
-    font-size: 0.8em;
-    color: #cbd5e1;
+    font-weight: 800;
+    font-size: 1.05em;
+    color: #f1f5f9;
+    letter-spacing: 0.5px;
   }
+  /* 加大目標床號 */
   .avail-bed-target {
     font-weight: 800;
-    font-size: 0.85em;
+    font-size: 1.0em;
     color: #38bdf8;
   }
+  /* 加大時間標籤 */
   .avail-time-tag {
-    font-size: 0.75em;
-    padding: 2px 6px;
-    border-radius: 4px;
+    font-size: 0.9em;
+    padding: 3px 8px;
+    border-radius: 5px;
     font-weight: 700;
     font-family: 'Courier New', Courier, monospace;
   }
@@ -289,7 +294,7 @@
   <p>點擊床位/設備設定治療項目及時間</p>
 </header>
 
-<!-- 💡 新增：最快可使用項目推薦欄 -->
+<!-- 💡 最快可使用項目推薦欄 -->
 <div class="quick-avail-bar" id="quick-avail-bar"></div>
 
 <div class="floor-plan">
@@ -366,13 +371,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// 💡 已更新治療師代號名單
 const physioList = [
   "001 A Chan", "002 J Yeung", "004 N Yuen", "006 S Wan", "008 W Chung",
-  "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung", "014 E Wong",
-  "015 C Lam", "016 T Fan", "017 KY Yau", "018 WM Yau", "019 A Lau",
-  "022 N Sze", "023 J Chan", "111 A Wong", "112 C Wong", "113 P Leung",
-  "115 J Pang", "118 J Fung", "119 A Ma", "201 W Cheung", "221 A Leung",
-  "321 M Chan", "454 C Tai", "455 C So", "534 W Li", "794 I Tsang", "799 J Yu"
+  "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung", "014 C So",
+  "015 C Lam", "016 T Fan", "017 KY Yau", "018 WM Yau",
+  "022 N Sze", "023 J Chan", "111 N Wong", "112 C Wong", "113 P Leung",
+  "115 J Pang", "116 T Kong", "118 J Fung", "119 A Ma", "201 W Cheung", "221 NR",
+  "321 M Chan", "454 C Tai", "455 A Wong", "534 W Li", "794 I Tsang", "799 I Ho"
 ];
 
 function populatePhysioDropdown() {
@@ -414,7 +420,6 @@ const bedSpecificItems = {
   'chair-18-b': ['HP', '運動', 'TENS']
 };
 
-// 💡 追蹤熱門項目的分佈床位
 const serviceTargets = {
   '拉腰': [2, 3, 4, 5, 6],
   '拉頸': [7, 11, 12],
@@ -489,7 +494,6 @@ function calculateWaitSeconds(bed) {
   return Math.floor((Date.now() - bed.waitTime) / 1000);
 }
 
-// 💡 計算每張床距離「完全空出」的總預估剩餘秒數（包含目前進行中 + 排隊時間）
 function getBedTotalWaitSeconds(key) {
   const bed = beds[key];
   if (!bed) return 999999;
@@ -500,11 +504,10 @@ function getBedTotalWaitSeconds(key) {
   }
 
   if (bed.status === 'idle') {
-    return queueWaitSeconds; // 沒人做，看有沒有預先排隊
+    return queueWaitSeconds;
   }
   
   if (bed.status === 'waiting') {
-    // 助理帶位中，預設等候該項目的時間
     return (bed.duration || 15) * 60 + queueWaitSeconds;
   }
   
@@ -516,7 +519,6 @@ function getBedTotalWaitSeconds(key) {
   return queueWaitSeconds;
 }
 
-// 💡 渲染頂部的「下一個最快可用床位」
 function renderQuickAvailability() {
   const container = document.getElementById('quick-avail-bar');
   if (!container) return;
@@ -639,35 +641,30 @@ function createEmptyCell() {
 }
 
 function renderLayout() {
-  // 💡 同步渲染推薦位置欄
   renderQuickAvailability();
 
   const leftContainer = document.getElementById('left-container');
   leftContainer.innerHTML = '';
   [1, 2, 3].forEach(key => leftContainer.appendChild(createBedCard(key)));
 
-  // 4號床 Row -> 右邊放 Monark Bike
   const bed4Row = document.createElement('div');
   bed4Row.className = 'side-by-side-row';
   bed4Row.appendChild(createBedCard(4));
   bed4Row.appendChild(createBedCard('monark-bike'));
   leftContainer.appendChild(bed4Row);
 
-  // 5號床 Row -> 右邊放 NuStep
   const bed5Row = document.createElement('div');
   bed5Row.className = 'side-by-side-row';
   bed5Row.appendChild(createBedCard(5));
   bed5Row.appendChild(createBedCard('nustep'));
   leftContainer.appendChild(bed5Row);
 
-  // 6號床 Row -> 右邊放 手單車 (handbike)
   const bed6Row = document.createElement('div');
   bed6Row.className = 'side-by-side-row';
   bed6Row.appendChild(createBedCard(6));
   bed6Row.appendChild(createBedCard('handbike'));
   leftContainer.appendChild(bed6Row);
 
-  // 7號床 Row -> 右邊放 Theraband
   const bed7Row = document.createElement('div');
   bed7Row.className = 'side-by-side-row';
   bed7Row.appendChild(createBedCard(7));
