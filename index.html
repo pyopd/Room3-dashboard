@@ -416,14 +416,14 @@ const bedSpecificItems = {
   'chair-18-b': ['HP', '運動', 'TENS']
 };
 
-// 💡 推薦清單：加入「椅子 (HP/TENS)」專屬推薦，純使用 4 張坐椅
+// 💡 推薦清單：拉腰優先級依序為 6 -> 5 -> 4 -> 3 -> 2
 const serviceTargets = {
-  '拉腰': [2, 3, 4, 5, 6],
+  '拉腰': [6, 5, 4, 3, 2],
   '拉頸': [7, 11, 12],
   'IFT': [29, 28, 17, 18, 15, 21, 22, 27, 1],
   'Zimmer': [21, 23],
   'NuStep': ['nustep', 'nustep-2'],
-  '椅子 (HP/TENS)': ['chair-21-29', 'chair-21-25', 'chair-18-a', 'chair-18-b']
+  '椅子 (HP/TENS)': ['chair-18-a', 'chair-18-b', 'chair-21-29', 'chair-21-25']
 };
 
 const defaultItems = ['HP', '運動', 'TENS'];
@@ -535,7 +535,6 @@ function renderQuickAvailability() {
     });
 
     const targetBed = beds[bestKey];
-    // 椅子卡片名稱簡化，顯示如「向29床」或「向11床」，方便一眼認出
     let bedName = targetBed.label || `${bestKey}號床`;
     bedName = bedName.replace('椅子 ', '');
 
