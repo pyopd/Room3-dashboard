@@ -21,9 +21,37 @@
     align-items: center;
   }
 
-  header { text-align: center; margin-bottom: 10px; }
+  header { text-align: center; margin-bottom: 8px; position: relative; width: 100%; max-width: 900px; }
   header h1 { font-size: 1.5em; color: #38bdf8; letter-spacing: 1px; }
   header p { color: #94a3b8; font-size: 0.8em; margin-top: 2px; }
+
+  /* 頂部功能欄 */
+  .top-action-bar {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 8px;
+  }
+  .btn-top-maint {
+    background: #334155;
+    color: #cbd5e1;
+    border: 1px solid #475569;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-top-maint:hover {
+    background: #475569;
+    color: #f8fafc;
+    border-color: #64748b;
+  }
 
   /* 快捷推薦欄：支援 6 個項目維持單行不換行 */
   .quick-avail-bar {
@@ -171,7 +199,7 @@
     animation: pulse-curry-dark 1s infinite; 
   }
 
-  /* 維修中樣式 */
+  /* 待修停用外觀 */
   .bed-card.maintenance {
     border-color: #64748b !important;
     background: repeating-linear-gradient(
@@ -181,7 +209,7 @@
       rgba(30, 41, 59, 0.9) 10px,
       rgba(30, 41, 59, 0.9) 20px
     ) !important;
-    opacity: 0.8;
+    opacity: 0.85;
   }
 
   @keyframes pulse-red {
@@ -237,6 +265,7 @@
   .timer-done { color: #ef4444 !important; font-size: 0.85em; font-weight: 800; }
   .timer-wait { color: #f59e0b !important; font-size: 0.8em; font-weight: 800; }
 
+  /* 彈窗樣式 */
   .modal-overlay {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -279,8 +308,7 @@
   .btn-wait { background: #d97706; color: white; }
   .btn-queue { background: #8b5cf6; color: white; }
   .btn-clear { background: #ef4444; color: white; }
-  .btn-repair { background: #64748b; color: white; }
-  .btn-cancel { background: #334155; color: #94a3b8; }
+  .btn-cancel { background: #475569; color: white; }
 
   .queue-section {
     margin-top: 14px;
@@ -297,6 +325,19 @@
     background: #dc2626; color: white; border: none;
     padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75em;
   }
+
+  /* 維修管理專屬列表 */
+  .maint-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0f172a;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border: 1px solid #475569;
+    font-size: 0.85em;
+  }
 </style>
 </head>
 <body>
@@ -305,6 +346,11 @@
   <h1>🏥 Room 3 即時看板</h1>
   <p>點擊床位/設備設定治療項目及時間</p>
 </header>
+
+<!-- 頂部獨立的待修管理入口按鈕 -->
+<div class="top-action-bar">
+  <button class="btn-top-maint" onclick="openMaintenanceModal()">🛠️ 設備待修管理</button>
+</div>
 
 <div class="quick-avail-bar" id="quick-avail-bar"></div>
 
@@ -326,6 +372,7 @@
   </div>
 </div>
 
+<!-- 床位主要設定 Modal (已回復原狀，去除待修掣，寬敞唔迫) -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h3 id="modal-title">設定床位</h3>
@@ -363,8 +410,7 @@
         <button class="btn btn-queue" id="btn-add-queue" onclick="addToQueue()">➕ 加入排隊</button>
       </div>
       <div class="btn-row">
-        <button class="btn btn-repair" onclick="handleFormSubmit('maintenance')">🛠️ 待修停用</button>
-        <button class="btn btn-clear" id="btn-clear" onclick="clearBedState()">🧹 清空/恢復空置</button>
+        <button class="btn btn-clear" id="btn-clear" onclick="clearBedState()">🧹 完成/清空</button>
         <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       </div>
     </div>
@@ -376,12 +422,43 @@
   </div>
 </div>
 
+<!-- 獨立待修停用管理 Modal -->
+<div class="modal-overlay" id="modal-maintenance-overlay">
+  <div class="modal">
+    <h3 style="color:#f59e0b;">🛠️ 設備 / 床位待修管理</h3>
+    <div class="form-group" style="margin-top: 14px;">
+      <label>選擇床位或儀器：</label>
+      <select id="maint-bed-select"></select>
+    </div>
+
+    <div class="btn-group" style="margin-top: 10px;">
+      <div class="btn-row">
+        <button class="btn" style="background:#dc2626; color:#fff;" onclick="setMaintenanceStatus(true)">⚠️ 設為待修停用</button>
+        <button class="btn" style="background:#10b981; color:#fff;" onclick="setMaintenanceStatus(false)">🟢 修好/恢復空置</button>
+      </div>
+      <button class="btn btn-cancel" onclick="closeMaintenanceModal()">關閉</button>
+    </div>
+
+    <div class="queue-section" style="margin-top: 18px;">
+      <h4 style="color:#cbd5e1; margin-bottom: 8px;">現正停用中列表：</h4>
+      <div id="maint-current-list"></div>
+    </div>
+  </div>
+</div>
+
 <script>
+// 初始化 Firebase
 const firebaseConfig = {
   databaseURL: "https://room-3-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+} catch (e) {
+  console.error("Firebase 初始化失敗，將以離線模式運作:", e);
+}
 
 const physioList = [
   "001 A Chan", "002 J Yeung", "004 N Yuen", "006 S Wan", "008 W Chung",
@@ -394,6 +471,7 @@ const physioList = [
 
 function populatePhysioDropdown() {
   const select = document.getElementById('input-physio');
+  if (!select) return;
   select.innerHTML = '';
   physioList.forEach(physio => {
     const opt = document.createElement('option');
@@ -475,17 +553,23 @@ let selectedBedKey = null;
 let selectedItemText = '';
 let selectedDuration = 15;
 
-db.ref('beds').on('value', snapshot => {
-  const data = snapshot.val();
-  if (data) {
-    Object.keys(data).forEach(key => {
-      if (beds[key]) {
-        beds[key] = { ...beds[key], ...data[key] };
+if (db) {
+  db.ref('beds').on('value', snapshot => {
+    try {
+      const data = snapshot.val();
+      if (data) {
+        Object.keys(data).forEach(key => {
+          if (beds[key]) {
+            beds[key] = { ...beds[key], ...data[key] };
+          }
+        });
+        renderLayout();
       }
-    });
-    renderLayout();
-  }
-});
+    } catch (err) {
+      console.error("更新資料錯誤:", err);
+    }
+  });
+}
 
 function formatTime(sec) {
   let m = Math.floor(sec / 60);
@@ -494,21 +578,20 @@ function formatTime(sec) {
 }
 
 function calculateSecondsLeft(bed) {
-  if (bed.status !== 'busy' || !bed.startTime) return 0;
+  if (!bed || bed.status !== 'busy' || !bed.startTime) return 0;
   const elapsedSeconds = Math.floor((Date.now() - bed.startTime) / 1000);
-  const totalSeconds = bed.duration * 60;
+  const totalSeconds = (bed.duration || 15) * 60;
   const remaining = totalSeconds - elapsedSeconds;
   return remaining > 0 ? remaining : 0;
 }
 
 function calculateWaitSeconds(bed) {
-  if (bed.status !== 'waiting' || !bed.waitTime) return 0;
+  if (!bed || bed.status !== 'waiting' || !bed.waitTime) return 0;
   return Math.floor((Date.now() - bed.waitTime) / 1000);
 }
 
 function getBedTotalWaitSeconds(key) {
   const bed = beds[key];
-  // 🛠️ 維修待用狀態直接排除，回傳極大等候時間
   if (!bed || bed.status === 'maintenance') return 999999;
   
   let queueWaitSeconds = 0;
@@ -549,14 +632,13 @@ function renderQuickAvailability() {
       }
     });
 
-    const targetBed = beds[bestKey];
+    const targetBed = beds[bestKey] || {};
     let bedName = targetBed.label || `${bestKey}號床`;
-    bedName = bedName.replace('椅子 ', '');
+    bedName = String(bedName).replace('椅子 ', '');
 
     let tagClass = 'free';
     let timeText = '即時有位';
 
-    // 若全部候選項目都維修中
     if (minWaitSeconds >= 999999) {
       tagClass = 'busy';
       timeText = '🚫 無法使用';
@@ -585,15 +667,14 @@ function renderQuickAvailability() {
 }
 
 function createBedCard(key) {
-  const bed = beds[key];
+  const bed = beds[key] || { status: 'idle' };
   const card = document.createElement('div');
-  
   let displayName = bed.label || `${key} 號床`;
   
-  // 🛠️ 維修狀態特殊渲染
+  // 待修停用外觀
   if (bed.status === 'maintenance') {
     card.className = `bed-card maintenance`;
-    card.onclick = () => openModal(key);
+    card.onclick = () => openMaintenanceModal(key);
     card.innerHTML = `
       <div class="bed-header"><span class="bed-num">${displayName}</span></div>
       <div class="status-text" style="font-size:0.75em; font-weight:700; color:#cbd5e1;">🛠️ 待修停用</div>
@@ -636,7 +717,7 @@ function createBedCard(key) {
       ${fallTag}
       ${queueTag}
       ${femaleTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
+      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId || ''}</span></div>
       <div class="item-name">${bed.item || displayName} (${bed.duration || 15}分)</div>
       <div class="timer timer-wait">⏳ 等候開機 (${formatTime(waitSeconds)})</div>
     `;
@@ -646,7 +727,7 @@ function createBedCard(key) {
       ${fallTag}
       ${queueTag}
       ${femaleTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
+      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId || ''}</span></div>
       <div class="item-name">${bed.item || displayName}</div>
       <div class="${timerClass}">${formatTime(secondsLeft)}</div>
     `;
@@ -655,7 +736,7 @@ function createBedCard(key) {
       ${fallTag}
       ${queueTag}
       ${femaleTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId}</span></div>
+      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId || ''}</span></div>
       <div class="item-name">${bed.item || displayName}</div>
       <div class="timer timer-done">🔔 時間到</div>
     `;
@@ -670,77 +751,95 @@ function createEmptyCell() {
 }
 
 function renderLayout() {
-  renderQuickAvailability();
+  try {
+    renderQuickAvailability();
 
-  const leftContainer = document.getElementById('left-container');
-  leftContainer.innerHTML = '';
-  [1, 2, 3].forEach(key => leftContainer.appendChild(createBedCard(key)));
+    const leftContainer = document.getElementById('left-container');
+    if (leftContainer) {
+      leftContainer.innerHTML = '';
+      [1, 2, 3].forEach(key => leftContainer.appendChild(createBedCard(key)));
 
-  const bed4Row = document.createElement('div');
-  bed4Row.className = 'side-by-side-row';
-  bed4Row.appendChild(createBedCard(4));
-  bed4Row.appendChild(createBedCard('monark-bike'));
-  leftContainer.appendChild(bed4Row);
+      const bed4Row = document.createElement('div');
+      bed4Row.className = 'side-by-side-row';
+      bed4Row.appendChild(createBedCard(4));
+      bed4Row.appendChild(createBedCard('monark-bike'));
+      leftContainer.appendChild(bed4Row);
 
-  const bed5Row = document.createElement('div');
-  bed5Row.className = 'side-by-side-row';
-  bed5Row.appendChild(createBedCard(5));
-  bed5Row.appendChild(createBedCard('nustep'));
-  leftContainer.appendChild(bed5Row);
+      const bed5Row = document.createElement('div');
+      bed5Row.className = 'side-by-side-row';
+      bed5Row.appendChild(createBedCard(5));
+      bed5Row.appendChild(createBedCard('nustep'));
+      leftContainer.appendChild(bed5Row);
 
-  const bed6Row = document.createElement('div');
-  bed6Row.className = 'side-by-side-row';
-  bed6Row.appendChild(createBedCard(6));
-  bed6Row.appendChild(createBedCard('handbike'));
-  leftContainer.appendChild(bed6Row);
+      const bed6Row = document.createElement('div');
+      bed6Row.className = 'side-by-side-row';
+      bed6Row.appendChild(createBedCard(6));
+      bed6Row.appendChild(createBedCard('handbike'));
+      leftContainer.appendChild(bed6Row);
 
-  const bed7Row = document.createElement('div');
-  bed7Row.className = 'side-by-side-row';
-  bed7Row.appendChild(createBedCard(7));
-  bed7Row.appendChild(createBedCard('theraband'));
-  leftContainer.appendChild(bed7Row);
+      const bed7Row = document.createElement('div');
+      bed7Row.className = 'side-by-side-row';
+      bed7Row.appendChild(createBedCard(7));
+      bed7Row.appendChild(createBedCard('theraband'));
+      leftContainer.appendChild(bed7Row);
+    }
 
-  const top2927 = document.getElementById('top-29-27');
-  top2927.innerHTML = '';
-  [29, 28, 27].forEach(num => top2927.appendChild(createBedCard(num)));
-  top2927.appendChild(createEmptyCell());
-  top2927.appendChild(createEmptyCell());
+    const top2927 = document.getElementById('top-29-27');
+    if (top2927) {
+      top2927.innerHTML = '';
+      [29, 28, 27].forEach(num => top2927.appendChild(createBedCard(num)));
+      top2927.appendChild(createEmptyCell());
+      top2927.appendChild(createEmptyCell());
+    }
 
-  const midEquipmentRow = document.getElementById('mid-equipment-row');
-  midEquipmentRow.innerHTML = '';
-  midEquipmentRow.appendChild(createBedCard('chair-21-29'));
-  midEquipmentRow.appendChild(createBedCard('chair-21-25'));
-  midEquipmentRow.appendChild(createBedCard('pulley-22-a'));
-  midEquipmentRow.appendChild(createBedCard('pulley-22-b'));
-  midEquipmentRow.appendChild(createBedCard('pulley-23'));
+    const midEquipmentRow = document.getElementById('mid-equipment-row');
+    if (midEquipmentRow) {
+      midEquipmentRow.innerHTML = '';
+      midEquipmentRow.appendChild(createBedCard('chair-21-29'));
+      midEquipmentRow.appendChild(createBedCard('chair-21-25'));
+      midEquipmentRow.appendChild(createBedCard('pulley-22-a'));
+      midEquipmentRow.appendChild(createBedCard('pulley-22-b'));
+      midEquipmentRow.appendChild(createBedCard('pulley-23'));
+    }
 
-  const row2125 = document.getElementById('row-21-25');
-  row2125.innerHTML = '';
-  [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
+    const row2125 = document.getElementById('row-21-25');
+    if (row2125) {
+      row2125.innerHTML = '';
+      [21, 22, 23, 24, 25].forEach(num => row2125.appendChild(createBedCard(num)));
+    }
 
-  const mid1817 = document.getElementById('mid-18-17');
-  mid1817.innerHTML = '';
-  mid1817.appendChild(createBedCard(18));
-  mid1817.appendChild(createBedCard(17));
-  mid1817.appendChild(createEmptyCell());
-  mid1817.appendChild(createBedCard(15));
-  mid1817.appendChild(createBedCard('parallel-bar'));
+    const mid1817 = document.getElementById('mid-18-17');
+    if (mid1817) {
+      mid1817.innerHTML = '';
+      mid1817.appendChild(createBedCard(18));
+      mid1817.appendChild(createBedCard(17));
+      mid1817.appendChild(createEmptyCell());
+      mid1817.appendChild(createBedCard(15));
+      mid1817.appendChild(createBedCard('parallel-bar'));
+    }
 
-  const row18Sub = document.getElementById('row-18-sub');
-  row18Sub.innerHTML = '';
-  row18Sub.appendChild(createBedCard('chair-18-a'));
-  row18Sub.appendChild(createBedCard('chair-18-b'));
-  row18Sub.appendChild(createBedCard('pulley-18'));
-  row18Sub.appendChild(createEmptyCell());
-  row18Sub.appendChild(createBedCard('nustep-2'));
+    const row18Sub = document.getElementById('row-18-sub');
+    if (row18Sub) {
+      row18Sub.innerHTML = '';
+      row18Sub.appendChild(createBedCard('chair-18-a'));
+      row18Sub.appendChild(createBedCard('chair-18-b'));
+      row18Sub.appendChild(createBedCard('pulley-18'));
+      row18Sub.appendChild(createEmptyCell());
+      row18Sub.appendChild(createBedCard('nustep-2'));
+    }
 
-  const bottom1113 = document.getElementById('bottom-11-13');
-  bottom1113.innerHTML = '';
-  bottom1113.appendChild(createBedCard(11));
-  bottom1113.appendChild(createBedCard(12));
-  bottom1113.appendChild(createBedCard(13));
-  bottom1113.appendChild(createEmptyCell());
-  bottom1113.appendChild(createEmptyCell());
+    const bottom1113 = document.getElementById('bottom-11-13');
+    if (bottom1113) {
+      bottom1113.innerHTML = '';
+      bottom1113.appendChild(createBedCard(11));
+      bottom1113.appendChild(createBedCard(12));
+      bottom1113.appendChild(createBedCard(13));
+      bottom1113.appendChild(createEmptyCell());
+      bottom1113.appendChild(createEmptyCell());
+    }
+  } catch (e) {
+    console.error("渲染佈局時發生錯誤:", e);
+  }
 }
 
 function getDefaultDuration(bedKey, itemName) {
@@ -753,6 +852,7 @@ function getDefaultDuration(bedKey, itemName) {
 function updateTimeSelection(duration) {
   selectedDuration = duration;
   const timeContainer = document.getElementById('time-btn-container');
+  if (!timeContainer) return;
   timeContainer.querySelectorAll('.option-btn').forEach(btn => {
     btn.classList.toggle('selected', parseInt(btn.innerText) === duration);
   });
@@ -760,7 +860,7 @@ function updateTimeSelection(duration) {
 
 function openModal(key) {
   selectedBedKey = key;
-  const bed = beds[key];
+  const bed = beds[key] || {};
   document.getElementById('modal-title').innerText = `設定 ${bed.label || `${key} 號床`}`;
   
   const itemFormGroup = document.getElementById('item-form-group');
@@ -768,7 +868,7 @@ function openModal(key) {
 
   if (bed.isEquipment) {
     itemFormGroup.style.display = 'none';
-    selectedItemText = bed.label;
+    selectedItemText = bed.label || '';
     selectedDuration = bed.duration || bed.defaultMins || 10;
   } else {
     itemFormGroup.style.display = 'block';
@@ -820,7 +920,7 @@ function openModal(key) {
   waitBtn.style.display = bed.disableAssistant ? 'none' : 'inline-block';
 
   const rowQueueBtn = document.getElementById('row-queue-btn');
-  if (bed.status === 'idle' || bed.status === 'maintenance') {
+  if (bed.status === 'idle') {
     rowQueueBtn.style.display = 'none';
   } else {
     rowQueueBtn.style.display = 'flex';
@@ -863,7 +963,7 @@ function handleFormSubmit(targetStatus = 'busy') {
   const fallRisk = document.getElementById('input-fall-risk').checked;
   const femaleOnly = document.getElementById('input-female-only').checked;
 
-  const currentBed = beds[selectedBedKey];
+  const currentBed = beds[selectedBedKey] || {};
 
   let updateData = {
     status: targetStatus,
@@ -880,14 +980,14 @@ function handleFormSubmit(targetStatus = 'busy') {
     updateData.waitTime = null;
   } else if (targetStatus === 'waiting') {
     updateData.waitTime = Date.now();
-  } else if (targetStatus === 'maintenance') {
-    updateData.startTime = null;
-    updateData.waitTime = null;
-    updateData.queue = []; // 清空待修儀器的排隊
   }
 
-  db.ref('beds/' + selectedBedKey).set(updateData);
+  beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
+  if (db) {
+    db.ref('beds/' + selectedBedKey).set(updateData);
+  }
   closeModal();
+  renderLayout();
 }
 
 function addToQueue() {
@@ -896,7 +996,7 @@ function addToQueue() {
   const fallRisk = document.getElementById('input-fall-risk').checked;
   const femaleOnly = document.getElementById('input-female-only').checked;
 
-  const currentBed = beds[selectedBedKey];
+  const currentBed = beds[selectedBedKey] || {};
   let currentQueue = currentBed.queue || [];
 
   currentQueue.push({
@@ -907,18 +1007,21 @@ function addToQueue() {
     femaleOnly: femaleOnly
   });
 
-  db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
+  beds[selectedBedKey].queue = currentQueue;
+  if (db) {
+    db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
+  }
   closeModal();
+  renderLayout();
 }
 
 function clearBedState() {
-  const currentBed = beds[selectedBedKey];
+  const currentBed = beds[selectedBedKey] || {};
   let currentQueue = currentBed.queue || [];
 
   if (currentQueue.length > 0) {
     const nextPatient = currentQueue.shift();
-
-    db.ref('beds/' + selectedBedKey).set({
+    const updateData = {
       status: 'busy',
       physioId: nextPatient.physioId,
       item: nextPatient.item,
@@ -927,25 +1030,131 @@ function clearBedState() {
       fallRisk: nextPatient.fallRisk || false,
       femaleOnly: nextPatient.femaleOnly || false,
       queue: currentQueue
-    });
+    };
+    beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
+    if (db) db.ref('beds/' + selectedBedKey).set(updateData);
   } else {
-    db.ref('beds/' + selectedBedKey).set({
+    const updateData = {
       status: 'idle',
       isEquipment: currentBed.isEquipment || false,
       disableAssistant: currentBed.disableAssistant || false,
       defaultMins: currentBed.defaultMins || null,
       label: currentBed.label || null
-    });
+    };
+    beds[selectedBedKey] = updateData;
+    if (db) db.ref('beds/' + selectedBedKey).set(updateData);
   }
 
   closeModal();
+  renderLayout();
 }
 
 function removeFromQueue(index) {
-  let currentQueue = beds[selectedBedKey].queue || [];
+  let currentQueue = (beds[selectedBedKey] && beds[selectedBedKey].queue) ? beds[selectedBedKey].queue : [];
   currentQueue.splice(index, 1);
-  db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
+  if (db) {
+    db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
+  }
   openModal(selectedBedKey);
+  renderLayout();
+}
+
+// =======================
+// 獨立維修管理邏輯
+// =======================
+function openMaintenanceModal(defaultKey = null) {
+  const select = document.getElementById('maint-bed-select');
+  select.innerHTML = '';
+
+  // 排序並填入所有可選設備及床位
+  Object.keys(beds).forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.innerText = beds[key].label || `${key} 號床`;
+    select.appendChild(opt);
+  });
+
+  if (defaultKey) {
+    select.value = defaultKey;
+  }
+
+  renderMaintenanceList();
+  document.getElementById('modal-maintenance-overlay').style.display = 'flex';
+}
+
+function closeMaintenanceModal() {
+  document.getElementById('modal-maintenance-overlay').style.display = 'none';
+}
+
+function renderMaintenanceList() {
+  const listContainer = document.getElementById('maint-current-list');
+  listContainer.innerHTML = '';
+
+  const maintBeds = Object.keys(beds).filter(k => beds[k].status === 'maintenance');
+
+  if (maintBeds.length === 0) {
+    listContainer.innerHTML = '<div style="color:#64748b; font-size:0.8em; text-align:center; padding:10px;">目前所有設備床位均正常運作 🟢</div>';
+    return;
+  }
+
+  maintBeds.forEach(k => {
+    const item = document.createElement('div');
+    item.className = 'maint-list-item';
+    item.innerHTML = `
+      <span style="font-weight:700; color:#f87171;">🛠️ ${beds[k].label || `${k} 號床`}</span>
+      <button class="btn" style="background:#10b981; color:#fff; padding:4px 8px; font-size:0.75em; flex:none; width:auto;" onclick="quickRestoreFromMaint('${k}')">恢復正常</button>
+    `;
+    listContainer.appendChild(item);
+  });
+}
+
+function setMaintenanceStatus(isMaintenance) {
+  const select = document.getElementById('maint-bed-select');
+  const targetKey = select.value;
+  if (!targetKey || !beds[targetKey]) return;
+
+  const currentBed = beds[targetKey];
+
+  if (isMaintenance) {
+    const updateData = {
+      status: 'maintenance',
+      startTime: null,
+      waitTime: null,
+      queue: [] // 清空排隊
+    };
+    beds[targetKey] = { ...currentBed, ...updateData };
+    if (db) db.ref('beds/' + targetKey).set(beds[targetKey]);
+  } else {
+    // 恢復空置
+    const updateData = {
+      status: 'idle',
+      isEquipment: currentBed.isEquipment || false,
+      disableAssistant: currentBed.disableAssistant || false,
+      defaultMins: currentBed.defaultMins || null,
+      label: currentBed.label || null
+    };
+    beds[targetKey] = updateData;
+    if (db) db.ref('beds/' + targetKey).set(updateData);
+  }
+
+  renderMaintenanceList();
+  renderLayout();
+}
+
+function quickRestoreFromMaint(targetKey) {
+  if (!targetKey || !beds[targetKey]) return;
+  const currentBed = beds[targetKey];
+  const updateData = {
+    status: 'idle',
+    isEquipment: currentBed.isEquipment || false,
+    disableAssistant: currentBed.disableAssistant || false,
+    defaultMins: currentBed.defaultMins || null,
+    label: currentBed.label || null
+  };
+  beds[targetKey] = updateData;
+  if (db) db.ref('beds/' + targetKey).set(updateData);
+  renderMaintenanceList();
+  renderLayout();
 }
 
 setInterval(renderLayout, 1000);
@@ -958,6 +1167,7 @@ function checkUrlParamsAndAutoOpen() {
   }
 }
 
+// 啟動頁面
 populatePhysioDropdown();
 renderLayout();
 setTimeout(checkUrlParamsAndAutoOpen, 500);
