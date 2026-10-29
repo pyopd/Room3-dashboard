@@ -416,14 +416,14 @@ const bedSpecificItems = {
   'chair-18-b': ['HP', '運動', 'TENS']
 };
 
-// 💡 推薦清單：名稱改為「HP/TENS (椅)」，並優先排序 chair-18-a、chair-18-b
+// 💡 推薦清單：加入「椅子 (HP/TENS)」專屬推薦，純使用 4 張坐椅
 const serviceTargets = {
   '拉腰': [2, 3, 4, 5, 6],
   '拉頸': [7, 11, 12],
   'IFT': [29, 28, 17, 18, 15, 21, 22, 27, 1],
   'Zimmer': [21, 23],
   'NuStep': ['nustep', 'nustep-2'],
-  'HP/TENS (椅)': ['chair-18-a', 'chair-18-b', 'chair-21-29', 'chair-21-25']
+  '椅子 (HP/TENS)': ['chair-21-29', 'chair-21-25', 'chair-18-a', 'chair-18-b']
 };
 
 const defaultItems = ['HP', '運動', 'TENS'];
@@ -535,6 +535,7 @@ function renderQuickAvailability() {
     });
 
     const targetBed = beds[bestKey];
+    // 椅子卡片名稱簡化，顯示如「向29床」或「向11床」，方便一眼認出
     let bedName = targetBed.label || `${bestKey}號床`;
     bedName = bedName.replace('椅子 ', '');
 
@@ -752,4 +753,181 @@ function openModal(key) {
     itemList.forEach(itemName => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.
+      btn.className = `option-btn ${itemName === selectedItemText ? 'selected' : ''}`;
+      btn.innerText = itemName;
+      btn.onclick = () => {
+        itemContainer.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedItemText = itemName;
+        updateTimeSelection(getDefaultDuration(key, itemName));
+      };
+      itemContainer.appendChild(btn);
+    });
+  }
+
+  timeFormGroup.style.display = 'block';
+
+  const timeContainer = document.getElementById('time-btn-container');
+  timeContainer.innerHTML = '';
+  timeOptions.forEach(mins => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `option-btn ${mins === selectedDuration ? 'selected' : ''}`;
+    btn.innerText = `${mins}分鐘`;
+    btn.onclick = () => {
+      timeContainer.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedDuration = mins;
+    };
+    timeContainer.appendChild(btn);
+  });
+
+  const physioSelect = document.getElementById('input-physio');
+  physioSelect.value = bed.physioId || localStorage.getItem('physio_id') || '008 W Chung';
+  document.getElementById('input-fall-risk').checked = bed.fallRisk || false;
+  document.getElementById('input-female-only').checked = bed.femaleOnly || false;
+
+  const waitBtn = document.getElementById('btn-wait');
+  waitBtn.style.display = bed.disableAssistant ? 'none' : 'inline-block';
+
+  const rowQueueBtn = document.getElementById('row-queue-btn');
+  if (bed.status === 'idle') {
+    rowQueueBtn.style.display = 'none';
+  } else {
+    rowQueueBtn.style.display = 'flex';
+  }
+
+  const queueSection = document.getElementById('queue-section');
+  const queueListContainer = document.getElementById('queue-list-container');
+
+  if (bed.queue && bed.queue.length > 0) {
+    queueSection.style.display = 'block';
+    queueListContainer.innerHTML = '';
+    bed.queue.forEach((qItem, idx) => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'queue-item';
+      let fallTxt = qItem.fallRisk ? ' [⚠️防跌]' : '';
+      let femaleTxt = qItem.femaleOnly ? ' [🌸限女]' : '';
+      qDiv.innerHTML = `
+        <span><b>第 ${idx + 1} 位:</b> ${qItem.physioId} (${qItem.item} - ${qItem.duration}分)${fallTxt}${femaleTxt}</span>
+        <button class="btn-del-queue" onclick="removeFromQueue(${idx})">取消</button>
+      `;
+      queueListContainer.appendChild(qDiv);
+    });
+  } else {
+    queueSection.style.display = 'none';
+  }
+
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  if (window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+function handleFormSubmit(targetStatus = 'busy') {
+  const physio = document.getElementById('input-physio').value;
+  localStorage.setItem('physio_id', physio);
+  const fallRisk = document.getElementById('input-fall-risk').checked;
+  const femaleOnly = document.getElementById('input-female-only').checked;
+
+  const currentBed = beds[selectedBedKey];
+
+  let updateData = {
+    status: targetStatus,
+    physioId: physio,
+    item: selectedItemText,
+    duration: selectedDuration,
+    fallRisk: fallRisk,
+    femaleOnly: femaleOnly,
+    queue: currentBed.queue || []
+  };
+
+  if (targetStatus === 'busy') {
+    updateData.startTime = Date.now();
+    updateData.waitTime = null;
+  } else if (targetStatus === 'waiting') {
+    updateData.waitTime = Date.now();
+  }
+
+  db.ref('beds/' + selectedBedKey).set(updateData);
+  closeModal();
+}
+
+function addToQueue() {
+  const physio = document.getElementById('input-physio').value;
+  localStorage.setItem('physio_id', physio);
+  const fallRisk = document.getElementById('input-fall-risk').checked;
+  const femaleOnly = document.getElementById('input-female-only').checked;
+
+  const currentBed = beds[selectedBedKey];
+  let currentQueue = currentBed.queue || [];
+
+  currentQueue.push({
+    physioId: physio,
+    item: selectedItemText,
+    duration: selectedDuration,
+    fallRisk: fallRisk,
+    femaleOnly: femaleOnly
+  });
+
+  db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
+  closeModal();
+}
+
+function clearBedState() {
+  const currentBed = beds[selectedBedKey];
+  let currentQueue = currentBed.queue || [];
+
+  if (currentQueue.length > 0) {
+    const nextPatient = currentQueue.shift();
+
+    db.ref('beds/' + selectedBedKey).set({
+      status: 'busy',
+      physioId: nextPatient.physioId,
+      item: nextPatient.item,
+      startTime: Date.now(),
+      duration: nextPatient.duration,
+      fallRisk: nextPatient.fallRisk || false,
+      femaleOnly: nextPatient.femaleOnly || false,
+      queue: currentQueue
+    });
+  } else {
+    db.ref('beds/' + selectedBedKey).set({
+      status: 'idle',
+      isEquipment: currentBed.isEquipment || false,
+      disableAssistant: currentBed.disableAssistant || false,
+      defaultMins: currentBed.defaultMins || null,
+      label: currentBed.label || null
+    });
+  }
+
+  closeModal();
+}
+
+function removeFromQueue(index) {
+  let currentQueue = beds[selectedBedKey].queue || [];
+  currentQueue.splice(index, 1);
+  db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
+  openModal(selectedBedKey);
+}
+
+setInterval(renderLayout, 1000);
+
+function checkUrlParamsAndAutoOpen() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const bedParam = urlParams.get('bed');
+  if (bedParam && beds[bedParam]) {
+    openModal(bedParam);
+  }
+}
+
+populatePhysioDropdown();
+renderLayout();
+setTimeout(checkUrlParamsAndAutoOpen, 500);
+</script>
+</body>
+</html>
