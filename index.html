@@ -1133,7 +1133,7 @@ function openMaintenanceModal(defaultKey = null) {
 function onMaintBedChange() {
   const bedKey = document.getElementById('maint-bed-select').value;
   const targetTypeSelect = document.getElementById('maint-target-type');
-  targetTypeSelect.innerHTML = '<option value="__ALL__">⛔ 整張床位停用</option>';
+  targetTypeSelect.innerHTML = '<option value="__ALL__">⛔ 整張床位 / 整部設備停用</option>';
 
   const bed = beds[bedKey] || {};
   if (!bed.isEquipment) {
