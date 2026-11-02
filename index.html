@@ -22,7 +22,7 @@
     text-align: center;
     margin-bottom: 4px;
     width: 100%;
-    max-width: 900px;
+    max-width: 960px;
   }
   header h1 {
     font-size: 1.4em;
@@ -34,7 +34,7 @@
     display: flex;
     justify-content: flex-end;
     width: 100%;
-    max-width: 900px;
+    max-width: 960px;
     margin-bottom: 6px;
   }
   .btn-top-maint {
@@ -113,6 +113,7 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
+  /* 擴闊卡片至 170px，版面容納更多字元 */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 24px auto;
@@ -165,16 +166,16 @@
     border: 1px solid #475569;
   }
 
-  .grid-5 { display: grid; grid-template-columns: repeat(5, 160px); gap: 16px 8px; width: fit-content; }
-  .empty-cell { width: 160px; height: 86px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 170px); gap: 16px 8px; width: fit-content; }
+  .empty-cell { width: 170px; height: 86px; }
 
-  /* 卡片結構：外框上方預留空間給標籤，上方留出 8px 內邊距避開重疊 */
+  /* 卡片主體加大闊度至 170px，確保文字完全在框內 */
   .bed-card {
     position: relative;
-    width: 160px; height: 86px;
+    width: 170px; height: 86px;
     background: #334155;
     border-radius: 8px;
-    padding: 8px 6px 5px 6px;
+    padding: 8px 8px 5px 8px;
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -183,6 +184,7 @@
     justify-content: space-between;
     transition: all 0.2s ease;
     border: 2px solid transparent;
+    overflow: visible;
   }
   .bed-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
@@ -238,7 +240,6 @@
     outline-offset: -1px;
   }
   
-  /* 標籤容器：橫排排列，設有間隔 (gap)，固定浮於卡片頂部邊界之上 */
   .badge-container {
     position: absolute;
     top: -14px;
@@ -267,31 +268,36 @@
   .queue-badge { background: #8b5cf6; }
   .female-badge { background: #ec4899; }
 
-  /* 床號與治療師名：重要度高，字體設定合適，確保左右排開不截斷 */
+  /* 床號與治療師名：控制字體與間距，保證框內不溢出 */
   .bed-header { 
     display: flex; 
     justify-content: space-between; 
-    align-items: baseline; 
+    align-items: center; 
     width: 100%;
     line-height: 1.1;
+    gap: 4px;
   }
   .bed-num { 
-    font-size: 0.84em; 
+    font-size: 0.78em; 
     font-weight: 800; 
     color: #ffffff; 
     white-space: nowrap;
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    flex-shrink: 0;
   }
   .physio-id { 
-    font-size: 0.82em; 
-    font-weight: 700; 
+    font-size: 0.74em; 
+    font-weight: 800; 
     color: #facc15; 
     white-space: nowrap;
     text-align: right;
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 95px;
   }
 
-  /* 治療項目名稱（Zimmer 等）：比床號治療師細少少，柔和輔助呈現 */
+  /* 治療項目名稱（Zimmer 等）：比床號與治療師細少少，柔和輔助呈現 */
   .item-name { 
     font-size: 0.72em; 
     font-weight: 600; 
@@ -303,7 +309,7 @@
     line-height: 1.1;
   }
 
-  /* 倒數時間與等開機：清晰易讀 */
+  /* 倒數時間與等開機 */
   .timer-row {
     line-height: 1.1;
   }
@@ -773,7 +779,6 @@ function createBedCard(key) {
   card.className = `bed-card ${statusBorderClass} ${riskClass}`;
   card.onclick = () => openModal(key);
 
-  // 獨立標籤結構：使用 flex 容器水平排列，並由 gap 提供充足間距
   let badgesHtml = '';
   let queueCount = (bed.queue && Array.isArray(bed.queue)) ? bed.queue.length : 0;
   
