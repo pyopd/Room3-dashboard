@@ -11,24 +11,30 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: #0f172a;
     color: #f8fafc;
-    padding: 12px;
+    padding: 6px 10px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: hidden; /* 防止產生多餘滾動條 */
   }
 
-  header { text-align: center; margin-bottom: 8px; position: relative; width: 100%; max-width: 900px; }
-  header h1 { font-size: 1.5em; color: #38bdf8; letter-spacing: 1px; }
-  header p { color: #94a3b8; font-size: 0.8em; margin-top: 2px; }
-
-  /* 頂部功能欄 */
-  .top-action-bar {
+  /* 頂部整合行：標題與待修按鈕並排同高 */
+  .top-header-row {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
     max-width: 900px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+  }
+  .top-header-row h1 {
+    font-size: 1.35em;
+    color: #38bdf8;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .btn-top-maint {
     background: #334155;
@@ -43,6 +49,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    white-space: nowrap;
   }
   .btn-top-maint:hover {
     background: #475569;
@@ -50,7 +57,7 @@
     border-color: #64748b;
   }
 
-  /* 快捷推薦欄 */
+  /* 快捷推薦欄：維持緊湊高度 */
   .quick-avail-bar {
     display: flex;
     flex-wrap: nowrap;
@@ -58,10 +65,10 @@
     justify-content: center;
     background: #1e293b;
     border: 1px solid #334155;
-    padding: 8px 10px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    padding: 5px 8px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     width: fit-content;
     max-width: 98vw;
     overflow-x: auto;
@@ -71,7 +78,7 @@
     background: #0f172a;
     border: 1px solid #475569;
     border-radius: 6px;
-    padding: 6px 8px;
+    padding: 4px 8px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -87,18 +94,18 @@
   }
   .avail-label {
     font-weight: 700;
-    font-size: 0.88em;
+    font-size: 0.82em;
     color: #f8fafc;
     letter-spacing: 0.3px;
   }
   .avail-bed-target {
     font-weight: 700;
-    font-size: 0.82em;
+    font-size: 0.78em;
     color: #38bdf8;
   }
   .avail-time-tag {
-    font-size: 0.75em;
-    padding: 2px 5px;
+    font-size: 0.72em;
+    padding: 1px 5px;
     border-radius: 4px;
     font-weight: 700;
     font-family: 'Courier New', Courier, monospace;
@@ -107,14 +114,15 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
+  /* 看板主佈局：壓縮內部邊距與間隔 */
   .floor-plan {
     display: inline-grid;
-    grid-template-columns: auto 24px auto;
-    gap: 16px;
+    grid-template-columns: auto 22px auto;
+    gap: 12px;
     background: #1e293b;
-    padding: 16px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.5);
     border: 1px solid #334155;
     margin: 0 auto;
   }
@@ -128,46 +136,46 @@
     justify-content: center;
     writing-mode: vertical-rl;
     color: #64748b;
-    font-size: 0.75em;
+    font-size: 0.72em;
     letter-spacing: 4px;
     font-weight: 600;
   }
 
-  .left-container { display: flex; flex-direction: column-reverse; gap: 14px; }
-  .side-by-side-row { display: flex; gap: 8px; }
-  .right-container { display: flex; flex-direction: column; gap: 16px; width: fit-content; }
+  .left-container { display: flex; flex-direction: column-reverse; gap: 8px; }
+  .side-by-side-row { display: flex; gap: 6px; }
+  .right-container { display: flex; flex-direction: column; gap: 8px; width: fit-content; }
 
   .area-top, .area-bottom {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
     background: rgba(15, 23, 42, 0.4);
-    padding: 12px 8px;
-    border-radius: 10px;
+    padding: 6px 6px;
+    border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     width: fit-content;
   }
 
-  .spacer-top-gap { margin-bottom: 14px; }
-  .spacer-bottom-gap { margin-top: 14px; }
+  .spacer-top-gap { margin-bottom: 6px; }
+  .spacer-bottom-gap { margin-top: 6px; }
 
   .wall-divider {
-    height: 8px;
-    background: repeating-linear-gradient(45deg, #334155, #334155 8px, #1e293b 8px, #1e293b 16px);
-    border-radius: 4px;
-    margin: 4px 0;
+    height: 6px;
+    background: repeating-linear-gradient(45deg, #334155, #334155 6px, #1e293b 6px, #1e293b 12px);
+    border-radius: 3px;
+    margin: 2px 0;
     border: 1px solid #475569;
   }
 
-  .grid-5 { display: grid; grid-template-columns: repeat(5, 160px); gap: 18px 8px; width: fit-content; }
-  .empty-cell { width: 160px; height: 86px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 155px); gap: 8px 6px; width: fit-content; }
+  .empty-cell { width: 155px; height: 80px; }
 
   .bed-card {
     position: relative;
-    width: 160px; height: 86px;
+    width: 155px; height: 80px;
     background: #334155;
-    border-radius: 8px;
-    padding: 6px 8px;
+    border-radius: 7px;
+    padding: 5px 7px;
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -177,7 +185,7 @@
     transition: all 0.2s ease;
     border: 2px solid transparent;
   }
-  .bed-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  .bed-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
   .idle { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
   .idle .status-text { color: #10b981; }
@@ -233,14 +241,14 @@
   
   .top-badge {
     position: absolute; 
-    top: -11px; 
+    top: -9px; 
     color: #ffffff; 
-    font-size: 0.75em; 
+    font-size: 0.7em; 
     font-weight: 800; 
-    padding: 1px 5px; 
-    border-radius: 8px; 
-    border: 1.5px solid #ffffff; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4); 
+    padding: 1px 4px; 
+    border-radius: 6px; 
+    border: 1px solid #ffffff; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4); 
     z-index: 10; 
     letter-spacing: 0.3px; 
     line-height: 1.1; 
@@ -252,15 +260,16 @@
   .female-badge { right: -4px; background: #ec4899; }
 
   .bed-header { display: flex; justify-content: space-between; align-items: center; }
-  .bed-num { font-size: 0.85em; font-weight: 700; color: #f8fafc; }
-  .physio-id { font-size: 0.75em; font-weight: 700; color: #38bdf8; }
-  .item-name { font-size: 0.7em; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bed-num { font-size: 0.82em; font-weight: 700; color: #f8fafc; }
+  .physio-id { font-size: 0.72em; font-weight: 700; color: #38bdf8; }
+  .item-name { font-size: 0.68em; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .timer { font-size: 0.95em; font-weight: 700; font-family: 'Courier New', Courier, monospace; color: #38bdf8; }
+  .timer { font-size: 0.9em; font-weight: 700; font-family: 'Courier New', Courier, monospace; color: #38bdf8; }
   .timer-warning { color: #facc15 !important; }
-  .timer-done { color: #ef4444 !important; font-size: 0.85em; font-weight: 800; }
-  .timer-wait { color: #f59e0b !important; font-size: 0.8em; font-weight: 800; }
+  .timer-done { color: #ef4444 !important; font-size: 0.82em; font-weight: 800; }
+  .timer-wait { color: #f59e0b !important; font-size: 0.78em; font-weight: 800; }
 
+  /* 彈窗樣式 */
   .modal-overlay {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -269,25 +278,25 @@
     justify-content: center; align-items: center; z-index: 100;
   }
   .modal {
-    background: #1e293b; padding: 20px; border-radius: 14px;
-    width: 380px; border: 1px solid #475569; max-height: 90vh; overflow-y: auto;
+    background: #1e293b; padding: 18px; border-radius: 12px;
+    width: 370px; border: 1px solid #475569; max-height: 90vh; overflow-y: auto;
   }
-  .modal h3 { margin-bottom: 12px; color: #38bdf8; text-align: center; }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 0.8em; margin-bottom: 6px; color: #cbd5e1; }
+  .modal h3 { margin-bottom: 10px; color: #38bdf8; text-align: center; font-size: 1.15em; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 0.78em; margin-bottom: 5px; color: #cbd5e1; }
   .form-group select {
-    width: 100%; padding: 8px; border-radius: 8px;
-    border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 0.9em;
+    width: 100%; padding: 7px; border-radius: 6px;
+    border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 0.88em;
   }
 
-  .btn-grid { display: grid; gap: 6px; }
+  .btn-grid { display: grid; gap: 5px; }
   .btn-grid-2 { grid-template-columns: repeat(2, 1fr); }
   .btn-grid-4 { grid-template-columns: repeat(4, 1fr); }
 
   .option-btn {
     background: #0f172a; border: 1px solid #475569; color: #e2e8f0;
-    padding: 8px 4px; border-radius: 6px; cursor: pointer;
-    font-size: 0.8em; font-weight: 600; text-align: center;
+    padding: 7px 4px; border-radius: 6px; cursor: pointer;
+    font-size: 0.78em; font-weight: 600; text-align: center;
   }
   .option-btn.selected { background: #0284c7; border-color: #38bdf8; color: #ffffff; }
 
@@ -300,14 +309,14 @@
     opacity: 0.6;
   }
 
-  .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
-  .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 0.85em; }
+  .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; font-size: 0.82em; }
   .checkbox-fall { color: #fbbf24; }
   .checkbox-female { color: #f472b6; }
 
-  .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-  .btn-row { display: flex; gap: 8px; }
-  .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85em; }
+  .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+  .btn-row { display: flex; gap: 6px; }
+  .btn { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.82em; }
   .btn-start { background: #10b981; color: white; }
   .btn-wait { background: #d97706; color: white; }
   .btn-queue { background: #8b5cf6; color: white; }
@@ -315,19 +324,19 @@
   .btn-cancel { background: #475569; color: white; }
 
   .queue-section {
-    margin-top: 14px;
-    padding-top: 10px;
+    margin-top: 12px;
+    padding-top: 8px;
     border-top: 1px dashed #475569;
   }
-  .queue-section h4 { font-size: 0.85em; color: #c084fc; margin-bottom: 8px; }
+  .queue-section h4 { font-size: 0.82em; color: #c084fc; margin-bottom: 6px; }
   .queue-item {
     display: flex; justify-content: space-between; align-items: center;
-    background: #0f172a; padding: 6px 10px; border-radius: 6px;
-    font-size: 0.8em; margin-bottom: 6px; border: 1px solid #334155;
+    background: #0f172a; padding: 5px 8px; border-radius: 6px;
+    font-size: 0.78em; margin-bottom: 5px; border: 1px solid #334155;
   }
   .btn-del-queue {
     background: #dc2626; color: white; border: none;
-    padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75em;
+    padding: 2px 5px; border-radius: 4px; cursor: pointer; font-size: 0.72em;
   }
 
   .maint-list-item {
@@ -335,21 +344,19 @@
     justify-content: space-between;
     align-items: center;
     background: #0f172a;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     border: 1px solid #475569;
-    font-size: 0.85em;
+    font-size: 0.8em;
   }
 </style>
 </head>
 <body>
 
-<header>
+<!-- 合併後的頂部列：標題在左，待修按鈕在右，刪除了副標題 -->
+<div class="top-header-row">
   <h1>🏥 Room 3 即時看板</h1>
-</header>
-
-<div class="top-action-bar">
   <button class="btn-top-maint" onclick="openMaintenanceModal()">🛠️ 設備待修管理</button>
 </div>
 
@@ -394,10 +401,10 @@
       <label>特殊需求設定</label>
       <div class="checkbox-group">
         <label class="checkbox-label checkbox-fall">
-          <input type="checkbox" id="input-fall-risk" style="width:auto; transform: scale(1.2);"> ⚠️ 此病人有跌倒風險
+          <input type="checkbox" id="input-fall-risk" style="width:auto; transform: scale(1.1);"> ⚠️ 此病人有跌倒風險
         </label>
         <label class="checkbox-label checkbox-female">
-          <input type="checkbox" id="input-female-only" style="width:auto; transform: scale(1.2);"> 🌸 需女性處理 (限女)
+          <input type="checkbox" id="input-female-only" style="width:auto; transform: scale(1.1);"> 🌸 需女性處理 (限女)
         </label>
       </div>
     </div>
@@ -428,7 +435,7 @@
   <div class="modal">
     <h3 style="color:#f59e0b;">🛠️ 設備 / 儀器待修管理</h3>
     
-    <div class="form-group" style="margin-top: 14px;">
+    <div class="form-group" style="margin-top: 10px;">
       <label>1. 選擇床位或專屬設備：</label>
       <select id="maint-bed-select" onchange="onMaintBedChange()"></select>
     </div>
@@ -448,8 +455,8 @@
       <button class="btn btn-cancel" onclick="closeMaintenanceModal()">關閉</button>
     </div>
 
-    <div class="queue-section" style="margin-top: 18px;">
-      <h4 style="color:#cbd5e1; margin-bottom: 8px;">現正停用中列表：</h4>
+    <div class="queue-section" style="margin-top: 14px;">
+      <h4 style="color:#cbd5e1; margin-bottom: 6px;">現正停用中列表：</h4>
       <div id="maint-current-list"></div>
     </div>
   </div>
@@ -1077,6 +1084,7 @@ function removeFromQueue(index) {
   renderLayout();
 }
 
+// 獨立維修管理邏輯
 function openMaintenanceModal(defaultKey = null) {
   const select = document.getElementById('maint-bed-select');
   select.innerHTML = '';
@@ -1136,7 +1144,7 @@ function renderMaintenanceList() {
       item.className = 'maint-list-item';
       item.innerHTML = `
         <span style="font-weight:700; color:#f87171;">⛔ [整床] ${bedName}</span>
-        <button class="btn" style="background:#10b981; color:#fff; padding:4px 8px; font-size:0.75em; flex:none; width:auto;" onclick="quickRestoreWholeBed('${k}')">恢復整床</button>
+        <button class="btn" style="background:#10b981; color:#fff; padding:3px 7px; font-size:0.75em; flex:none; width:auto;" onclick="quickRestoreWholeBed('${k}')">恢復整床</button>
       `;
       listContainer.appendChild(item);
     }
@@ -1148,7 +1156,7 @@ function renderMaintenanceList() {
         item.className = 'maint-list-item';
         item.innerHTML = `
           <span style="font-weight:700; color:#f59e0b;">🔧 [儀器] ${bedName} - ${disabledItem}</span>
-          <button class="btn" style="background:#10b981; color:#fff; padding:4px 8px; font-size:0.75em; flex:none; width:auto;" onclick="quickRestoreSingleItem('${k}', '${disabledItem}')">恢復儀器</button>
+          <button class="btn" style="background:#10b981; color:#fff; padding:3px 7px; font-size:0.75em; flex:none; width:auto;" onclick="quickRestoreSingleItem('${k}', '${disabledItem}')">恢復儀器</button>
         `;
         listContainer.appendChild(item);
       });
@@ -1156,7 +1164,7 @@ function renderMaintenanceList() {
   });
 
   if (count === 0) {
-    listContainer.innerHTML = '<div style="color:#64748b; font-size:0.8em; text-align:center; padding:10px;">目前所有設備床位及儀器均正常運作 🟢</div>';
+    listContainer.innerHTML = '<div style="color:#64748b; font-size:0.78em; text-align:center; padding:8px;">目前所有設備床位及儀器均正常運作 🟢</div>';
   }
 }
 
