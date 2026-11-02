@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Room 3 即時看板</title>
-<!-- 引入 Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<title>Room 3 即時看板 (單機離線版)</title>
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,7 +50,7 @@
     border-color: #64748b;
   }
 
-  /* 快捷推薦欄：支援項目維持單行不換行 */
+  /* 快捷推薦欄 */
   .quick-avail-bar {
     display: flex;
     flex-wrap: nowrap;
@@ -199,7 +196,6 @@
     animation: pulse-curry-dark 1s infinite; 
   }
 
-  /* 待修停用外觀 */
   .bed-card.maintenance {
     border-color: #64748b !important;
     background: repeating-linear-gradient(
@@ -265,7 +261,6 @@
   .timer-done { color: #ef4444 !important; font-size: 0.85em; font-weight: 800; }
   .timer-wait { color: #f59e0b !important; font-size: 0.8em; font-weight: 800; }
 
-  /* 彈窗樣式 */
   .modal-overlay {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -296,7 +291,6 @@
   }
   .option-btn.selected { background: #0284c7; border-color: #38bdf8; color: #ffffff; }
 
-  /* 彈窗內損壞儀器按鈕樣式 */
   .option-btn.btn-disabled-maint {
     background: #1e293b !important;
     color: #64748b !important;
@@ -336,7 +330,6 @@
     padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 0.75em;
   }
 
-  /* 維修管理專屬列表 */
   .maint-list-item {
     display: flex;
     justify-content: space-between;
@@ -354,10 +347,9 @@
 
 <header>
   <h1>🏥 Room 3 即時看板</h1>
-  <p>點擊床位/設備設定治療項目及時間</p>
+  <p>點擊床位/設備設定治療項目及時間 (本地單機版)</p>
 </header>
 
-<!-- 頂部獨立的待修管理入口按鈕 -->
 <div class="top-action-bar">
   <button class="btn-top-maint" onclick="openMaintenanceModal()">🛠️ 設備待修管理</button>
 </div>
@@ -465,19 +457,6 @@
 </div>
 
 <script>
-// 初始化 Firebase
-const firebaseConfig = {
-  databaseURL: "https://room-3-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
-};
-
-let db = null;
-try {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-} catch (e) {
-  console.warn("Firebase 初始化提示:", e);
-}
-
 const physioList = [
   "001 A Chan", "002 J Yeung", "004 N Yuen", "006 S Wan", "008 W Chung",
   "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung", "014 C So",
@@ -581,63 +560,35 @@ let beds = {
   'nustep-2':    { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep 2', disabledItems: [] }
 };
 
-// 離線快取初始化：若本機已有上次儲存的資料，優先載入
-try {
-  const cachedData = localStorage.getItem('room3_beds_cache');
-  if (cachedData) {
-    const parsed = JSON.parse(cachedData);
-    Object.keys(parsed).forEach(k => {
-      if (beds[k]) {
-        beds[k] = { ...beds[k], ...parsed[k], disabledItems: parsed[k].disabledItems || [] };
-      }
-    });
+// 載入本地快取資料
+function loadLocalData() {
+  try {
+    const raw = localStorage.getItem('standalone_room3_beds');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      Object.keys(parsed).forEach(k => {
+        if (beds[k]) {
+          beds[k] = { ...beds[k], ...parsed[k], disabledItems: parsed[k].disabledItems || [] };
+        }
+      });
+    }
+  } catch (e) {
+    console.warn("讀取 LocalStorage 失敗:", e);
   }
-} catch (e) {
-  console.warn("讀取本地快取失敗:", e);
 }
 
-// 輔助函式：儲存資料到本地並同步到 Firebase
-function saveBedState(bedKey, data) {
+// 儲存狀態至本地
+function persistLocalData() {
   try {
-    localStorage.setItem('room3_beds_cache', JSON.stringify(beds));
-  } catch (err) {}
-
-  if (db && navigator.onLine) {
-    try {
-      db.ref('beds/' + bedKey).set(data);
-    } catch (err) {
-      console.warn("雲端同步延遲，已保留於本地:", err);
-    }
+    localStorage.setItem('standalone_room3_beds', JSON.stringify(beds));
+  } catch (e) {
+    console.error("儲存 LocalStorage 失敗:", e);
   }
 }
 
 let selectedBedKey = null;
 let selectedItemText = '';
 let selectedDuration = 15;
-
-// 線上即時監聽與自動備份到本地
-if (db) {
-  db.ref('beds').on('value', snapshot => {
-    try {
-      const data = snapshot.val();
-      if (data) {
-        Object.keys(data).forEach(key => {
-          if (beds[key]) {
-            beds[key] = { 
-              ...beds[key], 
-              ...data[key],
-              disabledItems: data[key].disabledItems || [] 
-            };
-          }
-        });
-        localStorage.setItem('room3_beds_cache', JSON.stringify(beds));
-        renderLayout();
-      }
-    } catch (err) {
-      console.error("更新資料錯誤:", err);
-    }
-  });
-}
 
 function formatTime(sec) {
   let m = Math.floor(sec / 60);
@@ -900,7 +851,7 @@ function renderLayout() {
       bottom1113.appendChild(createEmptyCell());
     }
   } catch (e) {
-    console.error("渲染佈局時發生錯誤:", e);
+    console.error("渲染佈局錯誤:", e);
   }
 }
 
@@ -1058,7 +1009,7 @@ function handleFormSubmit(targetStatus = 'busy') {
   }
 
   beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
-  saveBedState(selectedBedKey, updateData);
+  persistLocalData();
   closeModal();
   renderLayout();
 }
@@ -1081,7 +1032,7 @@ function addToQueue() {
   });
 
   beds[selectedBedKey].queue = currentQueue;
-  saveBedState(selectedBedKey + '/queue', currentQueue);
+  persistLocalData();
   closeModal();
   renderLayout();
 }
@@ -1104,7 +1055,6 @@ function clearBedState() {
       disabledItems: currentBed.disabledItems || []
     };
     beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
-    saveBedState(selectedBedKey, updateData);
   } else {
     const updateData = {
       status: 'idle',
@@ -1115,9 +1065,9 @@ function clearBedState() {
       disabledItems: currentBed.disabledItems || []
     };
     beds[selectedBedKey] = updateData;
-    saveBedState(selectedBedKey, updateData);
   }
 
+  persistLocalData();
   closeModal();
   renderLayout();
 }
@@ -1125,7 +1075,7 @@ function clearBedState() {
 function removeFromQueue(index) {
   let currentQueue = (beds[selectedBedKey] && beds[selectedBedKey].queue) ? beds[selectedBedKey].queue : [];
   currentQueue.splice(index, 1);
-  saveBedState(selectedBedKey + '/queue', currentQueue);
+  persistLocalData();
   openModal(selectedBedKey);
   renderLayout();
 }
@@ -1240,7 +1190,7 @@ function setMaintenanceStatus(isMaintenance) {
     beds[bedKey].disabledItems = disabledItems;
   }
 
-  saveBedState(bedKey, beds[bedKey]);
+  persistLocalData();
   renderMaintenanceList();
   renderLayout();
 }
@@ -1248,7 +1198,7 @@ function setMaintenanceStatus(isMaintenance) {
 function quickRestoreWholeBed(k) {
   if (!beds[k]) return;
   beds[k].status = 'idle';
-  saveBedState(k, beds[k]);
+  persistLocalData();
   renderMaintenanceList();
   renderLayout();
 }
@@ -1256,7 +1206,7 @@ function quickRestoreWholeBed(k) {
 function quickRestoreSingleItem(k, itemName) {
   if (!beds[k] || !beds[k].disabledItems) return;
   beds[k].disabledItems = beds[k].disabledItems.filter(i => i !== itemName);
-  saveBedState(k, beds[k]);
+  persistLocalData();
   renderMaintenanceList();
   renderLayout();
 }
@@ -1272,10 +1222,10 @@ function checkUrlParamsAndAutoOpen() {
 }
 
 // 啟動頁面
+loadLocalData();
 populatePhysioDropdown();
 renderLayout();
 setTimeout(checkUrlParamsAndAutoOpen, 500);
 </script>
 </body>
 </html>
-
