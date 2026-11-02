@@ -18,7 +18,7 @@
     align-items: center;
   }
 
-  /* 頂部同一行：標題置中，待修按鈕靠右 */
+  /* 頂部同一行：標題置中，右側操作按鈕群組 */
   .header-bar {
     position: relative;
     display: flex;
@@ -26,7 +26,7 @@
     justify-content: center;
     width: 100%;
     max-width: 950px;
-    margin-bottom: 14px;
+    margin-bottom: 14px; /* 留足夠空間給下邊快捷欄 */
     height: 34px;
   }
   .header-bar h1 {
@@ -35,11 +35,15 @@
     letter-spacing: 0.5px;
     margin: 0;
   }
-  .btn-top-maint {
+  .top-action-group {
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
+    display: flex;
+    gap: 6px;
+  }
+  .btn-top-action {
     background: #334155;
     color: #cbd5e1;
     border: 1px solid #475569;
@@ -54,7 +58,7 @@
     gap: 4px;
     white-space: nowrap;
   }
-  .btn-top-maint:hover {
+  .btn-top-action:hover {
     background: #475569;
     color: #f8fafc;
     border-color: #64748b;
@@ -70,7 +74,7 @@
     border: 1px solid #334155;
     padding: 5px 8px;
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     width: fit-content;
     max-width: 98vw;
@@ -116,7 +120,7 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
-  /* 看板主佈局：走廊 16px */
+  /* 走廊改窄至 16px */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 16px auto;
@@ -147,6 +151,7 @@
   .side-by-side-row { display: flex; gap: 6px; }
   .right-container { display: flex; flex-direction: column; gap: 14px; width: fit-content; }
 
+  /* 行距加寬至 18px，避開下方浮動標籤 */
   .area-top, .area-bottom {
     display: flex;
     flex-direction: column;
@@ -169,6 +174,7 @@
     border: 1px solid #475569;
   }
 
+  /* 闊度精準 166px */
   .grid-5 { display: grid; grid-template-columns: repeat(5, 166px); gap: 18px 6px; width: fit-content; }
   .empty-cell { width: 166px; height: 86px; }
 
@@ -289,8 +295,8 @@
   }
   .bed-item-top { 
     font-size: 0.84em; 
-    font-weight: 800; /* 粗體 */
-    color: #facc15;   /* 金黃色，同床號一樣亮眼清晰 */
+    font-weight: 800; 
+    color: #facc15;   
     white-space: nowrap;
     text-align: right;
     overflow: hidden;
@@ -299,11 +305,11 @@
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   }
 
-  /* 第二行：治療師名（輔助字體：細字、淺灰白、取消粗體） */
+  /* 第二行：治療師名（細字、淺灰白、非粗體） */
   .physio-row { 
     font-size: 0.76em; 
-    font-weight: 500; /* 取消粗體 */
-    color: #cbd5e1;   /* 柔和淺灰白，不喧賓奪主 */
+    font-weight: 500; 
+    color: #cbd5e1;   
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
@@ -332,7 +338,7 @@
     font-family: 'Courier New', Courier, monospace;
   }
 
-  /* 彈窗樣式 */
+  /* 彈窗樣式通用 */
   .modal-overlay {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -342,7 +348,7 @@
   }
   .modal {
     background: #1e293b; padding: 20px; border-radius: 14px;
-    width: 380px; border: 1px solid #475569; max-height: 90vh; overflow-y: auto;
+    width: 400px; border: 1px solid #475569; max-height: 90vh; overflow-y: auto;
   }
   .modal h3 { margin-bottom: 12px; color: #38bdf8; text-align: center; }
   .form-group { margin-bottom: 14px; }
@@ -413,14 +419,81 @@
     border: 1px solid #475569;
     font-size: 0.85em;
   }
+
+  /* 歷史紀錄彈窗分頁標籤與項目 */
+  .history-tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #475569;
+    padding-bottom: 8px;
+  }
+  .history-tab-btn {
+    flex: 1;
+    background: #0f172a;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82em;
+    cursor: pointer;
+    text-align: center;
+  }
+  .history-tab-btn.active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #38bdf8;
+  }
+  .history-list-box {
+    max-height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .history-item {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82em;
+  }
+  .history-time {
+    color: #64748b;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+    margin-right: 6px;
+  }
+  .btn-undo {
+    background: #059669;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.78em;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-undo:hover {
+    background: #10b981;
+  }
 </style>
 </head>
 <body>
 
-<!-- 標題置中與設備待修按鈕同一行 -->
+<!-- 頂部置中標題 + 右側操作群組 -->
 <div class="header-bar">
   <h1>🏥 Room 3 即時看板</h1>
-  <button class="btn-top-maint" onclick="openMaintenanceModal()">🛠️ 設備待修管理</button>
+  <div class="top-action-group">
+    <button class="btn-top-action" onclick="openHistoryModal()">📋 歷史紀錄</button>
+    <button class="btn-top-action" onclick="openMaintenanceModal()">🛠️ 設備待修</button>
+  </div>
 </div>
 
 <!-- 推薦欄 -->
@@ -444,7 +517,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- 床位主要設定 Modal -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h3 id="modal-title">設定床位</h3>
@@ -522,6 +595,24 @@
     <div class="queue-section" style="margin-top: 18px;">
       <h4 style="color:#cbd5e1; margin-bottom: 8px;">現正停用中列表：</h4>
       <div id="maint-current-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 歷史紀錄 Modal（最近20筆輸入與清空，支援還原） -->
+<div class="modal-overlay" id="modal-history-overlay">
+  <div class="modal">
+    <h3 style="color:#38bdf8;">📋 看板歷史操作紀錄</h3>
+    
+    <div class="history-tab-bar">
+      <button class="history-tab-btn active" id="tab-btn-cleared" onclick="switchHistoryTab('cleared')">🧹 最近清空 (20筆)</button>
+      <button class="history-tab-btn" id="tab-btn-inputs" onclick="switchHistoryTab('inputs')">📝 最近 Input (20筆)</button>
+    </div>
+
+    <div class="history-list-box" id="history-list-box"></div>
+
+    <div class="btn-group" style="margin-top: 14px;">
+      <button class="btn btn-cancel" onclick="closeHistoryModal()">關閉</button>
     </div>
   </div>
 </div>
@@ -630,6 +721,10 @@ let beds = {
   'nustep-2':    { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep 2', disabledItems: [] }
 };
 
+// 歷史紀錄陣列（上限 20 筆）
+let historyCleared = [];
+let historyInputs = [];
+
 function loadLocalData() {
   try {
     const raw = localStorage.getItem('standalone_room3_beds');
@@ -641,6 +736,10 @@ function loadLocalData() {
         }
       });
     }
+    const rawCleared = localStorage.getItem('room3_history_cleared');
+    if (rawCleared) historyCleared = JSON.parse(rawCleared);
+    const rawInputs = localStorage.getItem('room3_history_inputs');
+    if (rawInputs) historyInputs = JSON.parse(rawInputs);
   } catch (e) {
     console.warn("讀取 LocalStorage 失敗:", e);
   }
@@ -649,9 +748,47 @@ function loadLocalData() {
 function persistLocalData() {
   try {
     localStorage.setItem('standalone_room3_beds', JSON.stringify(beds));
+    localStorage.setItem('room3_history_cleared', JSON.stringify(historyCleared));
+    localStorage.setItem('room3_history_inputs', JSON.stringify(historyInputs));
   } catch (e) {
     console.error("儲存 LocalStorage 失敗:", e);
   }
+}
+
+function recordInput(bedKey, actionType, physioId, item, duration) {
+  const now = new Date();
+  const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const bedName = beds[bedKey]?.label || `${bedKey}號床`;
+  const actionLabel = actionType === 'busy' ? '▶️ 開機' : '⏳ 帶位';
+
+  historyInputs.unshift({
+    time: timeStr,
+    bedKey: bedKey,
+    bedName: bedName,
+    physioId: physioId,
+    item: item,
+    duration: duration,
+    actionLabel: actionLabel
+  });
+
+  if (historyInputs.length > 20) historyInputs = historyInputs.slice(0, 20);
+}
+
+function recordClear(bedKey, bedState) {
+  const now = new Date();
+  const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const bedName = beds[bedKey]?.label || `${bedKey}號床`;
+
+  historyCleared.unshift({
+    time: timeStr,
+    bedKey: bedKey,
+    bedName: bedName,
+    physioId: bedState.physioId,
+    item: bedState.item,
+    snapshot: JSON.parse(JSON.stringify(bedState)) // 完整保存狀態供還原
+  });
+
+  if (historyCleared.length > 20) historyCleared = historyCleared.slice(0, 20);
 }
 
 let selectedBedKey = null;
@@ -797,7 +934,6 @@ function createBedCard(key) {
     badgesHtml = `<div class="badge-container"><span class="top-badge queue-badge">等候:${queueCount}</span></div>`;
   }
 
-  // 治療項目名稱
   let itemDisplay = (!bed.isEquipment && bed.item) ? bed.item : '';
 
   if (bed.status === 'idle') {
@@ -1099,6 +1235,10 @@ function handleFormSubmit(targetStatus = 'busy') {
   }
 
   beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
+  
+  // 寫入 Input 歷史紀錄
+  recordInput(selectedBedKey, targetStatus, physio, selectedItemText, selectedDuration);
+
   persistLocalData();
   closeModal();
   renderLayout();
@@ -1122,6 +1262,8 @@ function addToQueue() {
   });
 
   beds[selectedBedKey].queue = currentQueue;
+  recordInput(selectedBedKey, 'queue', physio, selectedItemText, selectedDuration);
+
   persistLocalData();
   closeModal();
   renderLayout();
@@ -1130,6 +1272,11 @@ function addToQueue() {
 function clearBedState() {
   const currentBed = beds[selectedBedKey] || {};
   let currentQueue = currentBed.queue || [];
+
+  // 寫入清空歷史紀錄（儲存當前完整狀態供還原）
+  if (currentBed.status !== 'idle') {
+    recordClear(selectedBedKey, currentBed);
+  }
 
   if (currentQueue.length > 0) {
     const nextPatient = currentQueue.shift();
@@ -1168,6 +1315,112 @@ function removeFromQueue(index) {
   persistLocalData();
   openModal(selectedBedKey);
   renderLayout();
+}
+
+/* 歷史紀錄與誤按還原系統 */
+let currentHistoryTab = 'cleared';
+
+function openHistoryModal() {
+  switchHistoryTab(currentHistoryTab);
+  document.getElementById('modal-history-overlay').style.display = 'flex';
+}
+
+function closeHistoryModal() {
+  document.getElementById('modal-history-overlay').style.display = 'none';
+}
+
+function switchHistoryTab(tab) {
+  currentHistoryTab = tab;
+  document.getElementById('tab-btn-cleared').classList.toggle('active', tab === 'cleared');
+  document.getElementById('tab-btn-inputs').classList.toggle('active', tab === 'inputs');
+
+  const container = document.getElementById('history-list-box');
+  container.innerHTML = '';
+
+  if (tab === 'cleared') {
+    if (historyCleared.length === 0) {
+      container.innerHTML = '<div style="color:#64748b; font-size:0.85em; text-align:center; padding:20px;">暫無清空紀錄</div>';
+      return;
+    }
+    historyCleared.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      
+      let undoBtn = '';
+      // 最頂（最新一筆）提供一鍵還原功能
+      if (idx === 0) {
+        undoBtn = `<button class="btn-undo" onclick="restoreClearedBed(${idx})">↩️ 還原此床</button>`;
+      }
+
+      div.innerHTML = `
+        <div>
+          <span class="history-time">[${item.time}]</span>
+          <b style="color:#ffffff;">${item.bedName}</b> | 
+          <span style="color:#facc15;">${item.item || ''}</span> | 
+          <span style="color:#cbd5e1;">${item.physioId || ''}</span>
+          <span style="color:#ef4444; font-size:0.75em; margin-left:4px;">(清空)</span>
+        </div>
+        ${undoBtn}
+      `;
+      container.appendChild(div);
+    });
+  } else {
+    if (historyInputs.length === 0) {
+      container.innerHTML = '<div style="color:#64748b; font-size:0.85em; text-align:center; padding:20px;">暫無 Input 紀錄</div>';
+      return;
+    }
+    historyInputs.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `
+        <div>
+          <span class="history-time">[${item.time}]</span>
+          <b style="color:#ffffff;">${item.bedName}</b> | 
+          <span style="color:#facc15;">${item.item || ''}</span> 
+          <span style="color:#38bdf8;">(${item.duration}分)</span> | 
+          <span style="color:#cbd5e1;">${item.physioId || ''}</span>
+        </div>
+        <span style="color:#34d399; font-size:0.8em; font-weight:700;">${item.actionLabel}</span>
+      `;
+      container.appendChild(div);
+    });
+  }
+}
+
+function restoreClearedBed(idx) {
+  const target = historyCleared[idx];
+  if (!target || !target.snapshot) return;
+
+  const currentBed = beds[target.bedKey];
+  // 安全保護：如果該床已被使用，提示確認防覆蓋
+  if (currentBed && currentBed.status !== 'idle') {
+    if (!confirm(`${target.bedName} 目前正在使用中！是否確認要覆蓋並還原為剛才清空的狀態？`)) {
+      return;
+    }
+  }
+
+  // 還原完整狀態（連帶時間續算）
+  let restored = JSON.parse(JSON.stringify(target.snapshot));
+  
+  // 如果原本是 busy，重新校準時間以避免變為負數
+  if (restored.status === 'busy' && restored.startTime) {
+    const elapsedAtClear = Math.floor((Date.now() - restored.startTime) / 1000);
+    const totalSecs = (restored.duration || 15) * 60;
+    if (elapsedAtClear >= totalSecs) {
+      // 若清空時已經時間到，保持時間到狀態
+      restored.startTime = Date.now() - (totalSecs * 1000);
+    }
+  }
+
+  beds[target.bedKey] = restored;
+
+  // 從清空紀錄移除這筆
+  historyCleared.splice(idx, 1);
+  persistLocalData();
+  
+  closeHistoryModal();
+  renderLayout();
+  alert(`✅ 已成功將【${target.bedName}】還原至剛才的狀態！`);
 }
 
 function openMaintenanceModal(defaultKey = null) {
