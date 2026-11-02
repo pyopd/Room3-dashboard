@@ -116,7 +116,7 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
-  /* 走廊改窄至 16px */
+  /* 看板主佈局：走廊 16px */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 16px auto;
@@ -147,7 +147,6 @@
   .side-by-side-row { display: flex; gap: 6px; }
   .right-container { display: flex; flex-direction: column; gap: 14px; width: fit-content; }
 
-  /* 上下行間隔加大至 18px，避開下方標籤 */
   .area-top, .area-bottom {
     display: flex;
     flex-direction: column;
@@ -170,7 +169,6 @@
     border: 1px solid #475569;
   }
 
-  /* 闊度改回 166px */
   .grid-5 { display: grid; grid-template-columns: repeat(5, 166px); gap: 18px 6px; width: fit-content; }
   .empty-cell { width: 166px; height: 86px; }
 
@@ -180,7 +178,7 @@
     width: 166px; height: 86px;
     background: #334155;
     border-radius: 8px;
-    padding: 8px 6px 5px 6px;
+    padding: 6px 8px 5px 8px;
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -244,7 +242,7 @@
     outline-offset: -1px;
   }
   
-  /* 標籤容器 */
+  /* 標籤容器：浮在頂部外框上方 */
   .badge-container {
     position: absolute;
     top: -13px;
@@ -273,48 +271,48 @@
   .queue-badge { background: #8b5cf6; }
   .female-badge { background: #ec4899; }
 
-  /* 治療師名：改為非粗體 (500) */
+  /* 第一行：左邊床號，右邊治療項目 */
   .bed-header { 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     width: 100%;
-    line-height: 1.1;
-    gap: 4px;
+    line-height: 1.2;
+    padding-top: 2px;
   }
   .bed-num { 
-    font-size: 0.78em; 
+    font-size: 0.82em; 
     font-weight: 800; 
     color: #ffffff; 
     white-space: nowrap;
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    flex-shrink: 0;
   }
-  .physio-id { 
-    font-size: 0.75em; 
-    font-weight: 500; /* 取消粗體，精緻清晰 */
-    color: #facc15; 
-    white-space: nowrap;
-    text-align: right;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 95px;
-  }
-
-  /* 治療項目名稱 */
-  .item-name { 
+  .bed-item-top { 
     font-size: 0.72em; 
     font-weight: 600; 
-    color: #cbd5e1; 
-    margin: 1px 0;
+    color: #94a3b8; 
+    white-space: nowrap;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+  }
+
+  /* 第二行：治療師名（粗體、金黃色、居中、獨佔一行） */
+  .physio-row { 
+    font-size: 0.94em; 
+    font-weight: 800; 
+    color: #facc15; 
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
-    line-height: 1.1;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    margin: 1px 0;
   }
 
-  /* 倒數時間 */
+  /* 第三行：時間 */
   .timer-row {
     line-height: 1.1;
   }
@@ -799,6 +797,9 @@ function createBedCard(key) {
     badgesHtml = `<div class="badge-container"><span class="top-badge queue-badge">等候:${queueCount}</span></div>`;
   }
 
+  // 治療項目名稱（如果是設備就不用額外顯示）
+  let itemDisplay = (!bed.isEquipment && bed.item) ? bed.item : '';
+
   if (bed.status === 'idle') {
     card.innerHTML = `
       ${badgesHtml}
@@ -810,9 +811,9 @@ function createBedCard(key) {
       ${badgesHtml}
       <div class="bed-header">
         <span class="bed-num">${displayName}</span>
-        <span class="physio-id">${bed.physioId || ''}</span>
+        <span class="bed-item-top">${itemDisplay}</span>
       </div>
-      <div class="item-name">${bed.item || displayName}</div>
+      <div class="physio-row">${bed.physioId || ''}</div>
       <div class="timer-row">
         <span class="timer-wait">⏳ 等開機 ${formatTime(waitSeconds)}</span>
       </div>
@@ -823,9 +824,9 @@ function createBedCard(key) {
       ${badgesHtml}
       <div class="bed-header">
         <span class="bed-num">${displayName}</span>
-        <span class="physio-id">${bed.physioId || ''}</span>
+        <span class="bed-item-top">${itemDisplay}</span>
       </div>
-      <div class="item-name">${bed.item || displayName}</div>
+      <div class="physio-row">${bed.physioId || ''}</div>
       <div class="timer-row">
         <span class="${timerClass}">${formatTime(secondsLeft)}</span>
       </div>
@@ -835,9 +836,9 @@ function createBedCard(key) {
       ${badgesHtml}
       <div class="bed-header">
         <span class="bed-num">${displayName}</span>
-        <span class="physio-id">${bed.physioId || ''}</span>
+        <span class="bed-item-top">${itemDisplay}</span>
       </div>
-      <div class="item-name">${bed.item || displayName}</div>
+      <div class="physio-row">${bed.physioId || ''}</div>
       <div class="timer-row">
         <span class="timer timer-done">🔔 時間到</span>
       </div>
