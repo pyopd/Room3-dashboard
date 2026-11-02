@@ -2,40 +2,20 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Room 3 即時看板 (離線防重整版)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room 3 即時看板</title>
 
 <style>
-  * { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0; 
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    /* 核心防護：徹底禁用手機與平板瀏覽器的下拉重新整理與邊緣彈跳 */
-    overscroll-behavior-y: none;
-    overscroll-behavior: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: #0f172a;
     color: #f8fafc;
-    padding: 16px 12px;
+    padding: 12px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* 自動滿版放大，維持橫向大比例 */
-    zoom: 1.35;
-    transform-origin: top center;
   }
 
   header { text-align: center; margin-bottom: 8px; position: relative; width: 100%; max-width: 900px; }
@@ -54,7 +34,7 @@
     background: #334155;
     color: #cbd5e1;
     border: 1px solid #475569;
-    padding: 6px 14px;
+    padding: 5px 12px;
     border-radius: 6px;
     font-size: 0.8em;
     font-weight: 600;
@@ -477,19 +457,6 @@
 </div>
 
 <script>
-// 阻斷瀏覽器下拉與手勢重新整理事件
-document.addEventListener('touchmove', function (e) {
-  if (e.touches.length > 1) {
-    e.preventDefault();
-  }
-}, { passive: false });
-
-window.addEventListener('keydown', function (e) {
-  if ((e.key === 'r' && (e.metaKey || e.ctrlKey)) || e.key === 'F5') {
-    e.preventDefault();
-  }
-});
-
 const physioList = [
   "001 A Chan", "002 J Yeung", "004 N Yuen", "006 S Wan", "008 W Chung",
   "009 R Yu", "011 J Leung", "012 J Chu", "013 R Leung", "014 C So",
@@ -1111,7 +1078,6 @@ function removeFromQueue(index) {
   renderLayout();
 }
 
-// 獨立維修管理邏輯
 function openMaintenanceModal(defaultKey = null) {
   const select = document.getElementById('maint-bed-select');
   select.innerHTML = '';
