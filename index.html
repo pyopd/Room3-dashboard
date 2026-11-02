@@ -16,39 +16,43 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow-y: hidden; /* 防止產生多餘滾動條 */
+    overflow-y: hidden;
   }
 
-  /* 頂部整合行：標題與待修按鈕並排同高 */
-  .top-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  /* 1. 標題居中 */
+  header {
+    text-align: center;
+    margin-bottom: 2px;
     width: 100%;
-    max-width: 900px;
-    margin-bottom: 6px;
+    max-width: 960px;
   }
-  .top-header-row h1 {
+  header h1 {
     font-size: 1.35em;
     color: #38bdf8;
     letter-spacing: 0.5px;
+  }
+
+  /* 2. 設備待修管理按鈕：落返單獨一行靠右 */
+  .top-action-bar {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 960px;
+    margin-bottom: 4px;
   }
   .btn-top-maint {
     background: #334155;
     color: #cbd5e1;
     border: 1px solid #475569;
-    padding: 5px 12px;
+    padding: 3px 10px;
     border-radius: 6px;
-    font-size: 0.8em;
+    font-size: 0.78em;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     white-space: nowrap;
   }
   .btn-top-maint:hover {
@@ -57,56 +61,56 @@
     border-color: #64748b;
   }
 
-  /* 快捷推薦欄：維持緊湊高度 */
+  /* 3. 推薦欄：緊湊設計，一屏排晒唔使左右拉 */
   .quick-avail-bar {
     display: flex;
     flex-wrap: nowrap;
-    gap: 6px;
+    gap: 4px;
     justify-content: center;
     background: #1e293b;
     border: 1px solid #334155;
-    padding: 5px 8px;
+    padding: 4px 6px;
     border-radius: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    width: fit-content;
-    max-width: 98vw;
-    overflow-x: auto;
+    width: 100%;
+    max-width: 960px;
   }
 
   .avail-chip {
     background: #0f172a;
     border: 1px solid #475569;
-    border-radius: 6px;
-    padding: 4px 8px;
+    border-radius: 5px;
+    padding: 3px 5px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     cursor: pointer;
     transition: all 0.2s;
     user-select: none;
     white-space: nowrap;
+    flex: 1 1 0;
+    justify-content: center;
   }
   .avail-chip:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     border-color: #38bdf8;
     background: #1e293b;
   }
   .avail-label {
     font-weight: 700;
-    font-size: 0.82em;
+    font-size: 0.75em;
     color: #f8fafc;
-    letter-spacing: 0.3px;
   }
   .avail-bed-target {
     font-weight: 700;
-    font-size: 0.78em;
+    font-size: 0.72em;
     color: #38bdf8;
   }
   .avail-time-tag {
-    font-size: 0.72em;
-    padding: 1px 5px;
-    border-radius: 4px;
+    font-size: 0.68em;
+    padding: 1px 4px;
+    border-radius: 3px;
     font-weight: 700;
     font-family: 'Courier New', Courier, monospace;
   }
@@ -114,7 +118,7 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
-  /* 看板主佈局：壓縮內部邊距與間隔 */
+  /* 看板主體佈局 */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 22px auto;
@@ -354,12 +358,17 @@
 </head>
 <body>
 
-<!-- 合併後的頂部列：標題在左，待修按鈕在右，刪除了副標題 -->
-<div class="top-header-row">
+<!-- 1. 標題獨立居中 -->
+<header>
   <h1>🏥 Room 3 即時看板</h1>
+</header>
+
+<!-- 2. 設備待修管理：獨立成行靠右 -->
+<div class="top-action-bar">
   <button class="btn-top-maint" onclick="openMaintenanceModal()">🛠️ 設備待修管理</button>
 </div>
 
+<!-- 3. 推薦欄：全寬一屏排齊 -->
 <div class="quick-avail-bar" id="quick-avail-bar"></div>
 
 <div class="floor-plan">
@@ -512,13 +521,14 @@ const bedSpecificItems = {
   'chair-18-b': ['HP', '運動', 'TENS']
 };
 
+// 4. 將「椅子 (HP/TENS)」改名為「HP/TENS 椅」
 const serviceTargets = {
   '拉腰': [6, 5, 4, 3, 2],
   '拉頸': [7, 11, 12],
   'IFT': [29, 28, 17, 18, 15, 21, 22, 27, 1],
   'Zimmer': [21, 23],
   'NuStep': ['nustep', 'nustep-2'],
-  '椅子 (HP/TENS)': ['chair-18-a', 'chair-18-b', 'chair-21-29', 'chair-21-25']
+  'HP/TENS 椅': ['chair-18-a', 'chair-18-b', 'chair-21-29', 'chair-21-25']
 };
 
 const defaultItems = ['HP', '運動', 'TENS'];
@@ -553,14 +563,14 @@ let beds = {
   12: { status: 'idle', disabledItems: [] }, 
   13: { status: 'idle', disabledItems: [] },
   
-  'chair-21-29': { status: 'idle', label: '椅子 (向29床)', disabledItems: [] },
-  'chair-21-25': { status: 'idle', label: '椅子 (向25床)', disabledItems: [] },
+  'chair-21-29': { status: 'idle', label: '向29床椅', disabledItems: [] },
+  'chair-21-25': { status: 'idle', label: '向25床椅', disabledItems: [] },
   'pulley-22-a': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 1', disabledItems: [] },
   'pulley-22-b': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 2', disabledItems: [] },
   'pulley-23':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 3', disabledItems: [] },
 
-  'chair-18-a': { status: 'idle', label: '椅子 (向11床)', disabledItems: [] },
-  'chair-18-b': { status: 'idle', label: '椅子 (向15床)', disabledItems: [] },
+  'chair-18-a': { status: 'idle', label: '向11床椅', disabledItems: [] },
+  'chair-18-b': { status: 'idle', label: '向15床椅', disabledItems: [] },
   'pulley-18':   { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Pulley 4', disabledItems: [] },
   'parallel-bar': { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'Parallel Bar', disabledItems: [] },
   'nustep-2':    { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep 2', disabledItems: [] }
@@ -659,16 +669,16 @@ function renderQuickAvailability() {
 
     if (minWaitSeconds >= 999999) {
       tagClass = 'busy';
-      timeText = '🚫 無法使用';
+      timeText = '🚫 無位';
     } else if (minWaitSeconds === 0) {
       tagClass = 'free';
       timeText = '🟢 即時有位';
     } else if (minWaitSeconds <= 180) {
       tagClass = 'soon';
-      timeText = `🟡 約 ${Math.ceil(minWaitSeconds / 60)} 分鐘`;
+      timeText = `🟡 約${Math.ceil(minWaitSeconds / 60)}分`;
     } else {
       tagClass = 'busy';
-      timeText = `🔴 約 ${Math.ceil(minWaitSeconds / 60)} 分鐘`;
+      timeText = `🔴 約${Math.ceil(minWaitSeconds / 60)}分`;
     }
 
     const chip = document.createElement('div');
@@ -1084,7 +1094,6 @@ function removeFromQueue(index) {
   renderLayout();
 }
 
-// 獨立維修管理邏輯
 function openMaintenanceModal(defaultKey = null) {
   const select = document.getElementById('maint-bed-select');
   select.innerHTML = '';
@@ -1225,7 +1234,6 @@ function checkUrlParamsAndAutoOpen() {
   }
 }
 
-// 啟動頁面
 loadLocalData();
 populatePhysioDropdown();
 renderLayout();
