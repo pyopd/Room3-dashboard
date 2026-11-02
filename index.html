@@ -178,7 +178,7 @@
     width: 160px; height: 84px;
     background: #334155;
     border-radius: 8px;
-    padding: 6px 8px;
+    padding: 4px 6px;
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -238,76 +238,90 @@
   }
 
   .high-fall-risk { 
-    outline: 3px solid #f59e0b !important; 
+    outline: 2px solid #f59e0b !important; 
     outline-offset: -1px;
   }
   
+  /* 防跌、限女標籤：縮小並推向最外邊角，絕不遮字 */
   .top-badge {
     position: absolute; 
-    top: -10px; 
+    top: -8px; 
     color: #ffffff; 
-    font-size: 0.72em; 
+    font-size: 0.62em; 
     font-weight: 800; 
-    padding: 1px 5px; 
-    border-radius: 7px; 
-    border: 1.5px solid #ffffff; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4); 
+    padding: 1px 4px; 
+    border-radius: 4px; 
+    border: 1px solid #ffffff; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5); 
     z-index: 10; 
-    letter-spacing: 0.3px; 
     line-height: 1.1; 
     white-space: nowrap; 
   }
 
-  .fall-badge { left: -4px; background: #dc2626; }
+  .fall-badge { left: -2px; background: #dc2626; }
   .queue-badge { left: 50%; transform: translateX(-50%); background: #8b5cf6; }
-  .female-badge { right: -4px; background: #ec4899; }
+  .female-badge { right: -2px; background: #ec4899; }
 
-  /* 頂部標題與治療師代號 */
+  /* 頂部：床號與治療師固定同一行，字體改細緊湊 */
   .bed-header { 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     width: 100%;
-    line-height: 1.2;
+    line-height: 1;
+    padding-top: 1px;
   }
   .bed-num { 
-    font-size: 0.88em; 
-    font-weight: 800; 
-    color: #f8fafc; 
+    font-size: 0.72em; 
+    font-weight: 700; 
+    color: #cbd5e1; 
+    white-space: nowrap;
   }
   .physio-id { 
-    font-size: 0.76em; 
-    font-weight: 700; 
-    color: #fbbf24; /* 醒目金黃色，一眼分得出治療師 */
-    background: rgba(0, 0, 0, 0.25);
-    padding: 1px 4px;
-    border-radius: 4px;
+    font-size: 0.68em; 
+    font-weight: 600; 
+    color: #38bdf8; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+    text-align: right;
   }
 
-  /* 核心優化：治療項目名稱（例如 Zimmer）顯著放大、亮白色高對比 */
+  /* 中央項目名稱：大幅加粗放大、亮白高對比，居中清晰 */
   .item-name { 
-    font-size: 0.88em; 
-    font-weight: 800; 
+    font-size: 1.05em; 
+    font-weight: 900; 
     color: #ffffff; 
-    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     letter-spacing: 0.3px;
     margin: 1px 0;
     white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   }
 
-  /* 計時器與狀態文字清晰加強 */
+  /* 倒數計時與等開機字眼：清晰明亮 */
+  .timer-row {
+    line-height: 1.1;
+  }
   .timer { 
     font-size: 0.95em; 
     font-weight: 800; 
     font-family: 'Courier New', Courier, monospace; 
     color: #38bdf8; 
-    letter-spacing: 0.5px;
   }
   .timer-warning { color: #facc15 !important; }
   .timer-done { color: #ef4444 !important; font-size: 0.88em; font-weight: 900; }
-  .timer-wait { color: #fb923c !important; font-size: 0.82em; font-weight: 800; }
+  
+  /* 等開機：醒目亮黃色，倒數時間清晰加大 */
+  .timer-wait { 
+    color: #fde047 !important; 
+    font-size: 0.85em; 
+    font-weight: 800; 
+    font-family: 'Courier New', Courier, monospace;
+  }
 
   /* 彈窗樣式 */
   .modal-overlay {
@@ -394,17 +408,14 @@
 </head>
 <body>
 
-<!-- 標題居中 -->
 <header>
   <h1>🏥 Room 3 即時看板</h1>
 </header>
 
-<!-- 設備待修管理：獨立成行靠右 -->
 <div class="top-action-bar">
   <button class="btn-top-maint" onclick="openMaintenanceModal()">🛠️ 設備待修管理</button>
 </div>
 
-<!-- 推薦欄：短名稱 HP/TENS 椅 -->
 <div class="quick-avail-bar" id="quick-avail-bar"></div>
 
 <div class="floor-plan">
@@ -425,7 +436,7 @@
   </div>
 </div>
 
-<!-- 床位主要設定 Modal -->
+<!-- Modal -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h3 id="modal-title">設定床位</h3>
@@ -783,8 +794,10 @@ function createBedCard(key) {
         <span class="bed-num">${displayName}</span>
         <span class="physio-id">${bed.physioId || ''}</span>
       </div>
-      <div class="item-name">${bed.item || displayName} (${bed.duration || 15}分)</div>
-      <div class="timer timer-wait">⏳ 等開機 (${formatTime(waitSeconds)})</div>
+      <div class="item-name">${bed.item || displayName}</div>
+      <div class="timer-row">
+        <span class="timer-wait">⏳ 等開機 ${formatTime(waitSeconds)}</span>
+      </div>
     `;
   } else if (bed.status === 'busy' && secondsLeft > 0) {
     let timerClass = secondsLeft <= 30 ? 'timer timer-warning' : 'timer';
@@ -797,7 +810,9 @@ function createBedCard(key) {
         <span class="physio-id">${bed.physioId || ''}</span>
       </div>
       <div class="item-name">${bed.item || displayName}</div>
-      <div class="${timerClass}">${formatTime(secondsLeft)}</div>
+      <div class="timer-row">
+        <span class="${timerClass}">${formatTime(secondsLeft)}</span>
+      </div>
     `;
   } else {
     card.innerHTML = `
@@ -809,7 +824,9 @@ function createBedCard(key) {
         <span class="physio-id">${bed.physioId || ''}</span>
       </div>
       <div class="item-name">${bed.item || displayName}</div>
-      <div class="timer timer-done">🔔 時間到</div>
+      <div class="timer-row">
+        <span class="timer timer-done">🔔 時間到</span>
+      </div>
     `;
   }
   return card;
