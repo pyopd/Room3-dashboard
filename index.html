@@ -18,7 +18,6 @@
     align-items: center;
   }
 
-  /* 標題居中 */
   header {
     text-align: center;
     margin-bottom: 4px;
@@ -31,7 +30,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* 設備待修管理：獨立成行靠右 */
   .top-action-bar {
     display: flex;
     justify-content: flex-end;
@@ -60,7 +58,6 @@
     border-color: #64748b;
   }
 
-  /* 快捷推薦欄：短名稱 HP/TENS 椅 */
   .quick-avail-bar {
     display: flex;
     flex-wrap: nowrap;
@@ -116,13 +113,12 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
-  /* 看板主佈局：標準 160px，預留頂部空間放浮動標籤 */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 24px auto;
     gap: 16px;
     background: #1e293b;
-    padding: 14px 14px 10px 14px;
+    padding: 16px 14px 12px 14px;
     border-radius: 12px;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     border: 1px solid #334155;
@@ -172,13 +168,13 @@
   .grid-5 { display: grid; grid-template-columns: repeat(5, 160px); gap: 16px 8px; width: fit-content; }
   .empty-cell { width: 160px; height: 86px; }
 
-  /* 床位卡片結構優化 */
+  /* 卡片結構：外框上方預留空間給標籤，上方留出 8px 內邊距避開重疊 */
   .bed-card {
     position: relative;
     width: 160px; height: 86px;
     background: #334155;
     border-radius: 8px;
-    padding: 5px 8px;
+    padding: 8px 6px 5px 6px;
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -242,60 +238,64 @@
     outline-offset: -1px;
   }
   
-  /* 防跌、等候、限女：改大少少、浮喺卡片頂部上方，絕不遮掩內部文字 */
+  /* 標籤容器：橫排排列，設有間隔 (gap)，固定浮於卡片頂部邊界之上 */
+  .badge-container {
+    position: absolute;
+    top: -14px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
   .top-badge {
-    position: absolute; 
-    top: -11px; 
     color: #ffffff; 
-    font-size: 0.7em; 
+    font-size: 0.58em; 
     font-weight: 800; 
-    padding: 2px 6px; 
-    border-radius: 5px; 
-    border: 1.5px solid #ffffff; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.6); 
-    z-index: 10; 
+    padding: 1px 4px; 
+    border-radius: 4px; 
+    border: 1px solid rgba(255, 255, 255, 0.9); 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.6); 
     line-height: 1.1; 
     white-space: nowrap; 
   }
 
-  .fall-badge { left: 4px; background: #dc2626; }
-  .queue-badge { left: 50%; transform: translateX(-50%); background: #8b5cf6; }
-  .female-badge { right: 4px; background: #ec4899; }
+  .fall-badge { background: #dc2626; }
+  .queue-badge { background: #8b5cf6; }
+  .female-badge { background: #ec4899; }
 
-  /* 重點強化：床號與治療師名（置頂、清晰大字、同一行排開） */
+  /* 床號與治療師名：重要度高，字體設定合適，確保左右排開不截斷 */
   .bed-header { 
     display: flex; 
     justify-content: space-between; 
-    align-items: center; 
+    align-items: baseline; 
     width: 100%;
-    line-height: 1.2;
-    padding-top: 2px;
+    line-height: 1.1;
   }
   .bed-num { 
-    font-size: 0.92em; 
-    font-weight: 900; 
+    font-size: 0.84em; 
+    font-weight: 800; 
     color: #ffffff; 
-    letter-spacing: 0.3px;
     white-space: nowrap;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   }
   .physio-id { 
-    font-size: 0.85em; 
-    font-weight: 800; 
-    color: #facc15; /* 醒目亮黃色，一眼分得出治療師 */
+    font-size: 0.82em; 
+    font-weight: 700; 
+    color: #facc15; 
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 95px;
     text-align: right;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   }
 
-  /* 項目名（小少少重要）：縮細為輔助字體，不喧賓奪主 */
+  /* 治療項目名稱（Zimmer 等）：比床號治療師細少少，柔和輔助呈現 */
   .item-name { 
-    font-size: 0.76em; 
+    font-size: 0.72em; 
     font-weight: 600; 
-    color: #94a3b8; 
+    color: #cbd5e1; 
     margin: 1px 0;
     white-space: nowrap; 
     overflow: hidden; 
@@ -303,28 +303,27 @@
     line-height: 1.1;
   }
 
-  /* 倒數計時與等開機：清晰大字 */
+  /* 倒數時間與等開機：清晰易讀 */
   .timer-row {
     line-height: 1.1;
   }
   .timer { 
-    font-size: 0.98em; 
+    font-size: 0.96em; 
     font-weight: 800; 
     font-family: 'Courier New', Courier, monospace; 
     color: #38bdf8; 
   }
   .timer-warning { color: #facc15 !important; }
-  .timer-done { color: #ef4444 !important; font-size: 0.9em; font-weight: 900; }
+  .timer-done { color: #ef4444 !important; font-size: 0.88em; font-weight: 900; }
   
-  /* 等開機：醒目亮橙黃，數字加大 */
   .timer-wait { 
     color: #fbbf24 !important; 
-    font-size: 0.86em; 
+    font-size: 0.84em; 
     font-weight: 800; 
     font-family: 'Courier New', Courier, monospace;
   }
 
-  /* 彈窗樣式 */
+  /* Modal 彈窗樣式 */
   .modal-overlay {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -774,24 +773,32 @@ function createBedCard(key) {
   card.className = `bed-card ${statusBorderClass} ${riskClass}`;
   card.onclick = () => openModal(key);
 
-  /* 標籤字體加大，移至外框上方，絕不覆蓋文字 */
-  let fallTag = (bed.fallRisk && bed.status !== 'idle') ? `<div class="top-badge fall-badge">⚠️防跌</div>` : '';
-  let femaleTag = (bed.femaleOnly && bed.status !== 'idle') ? `<div class="top-badge female-badge">🌸限女</div>` : '';
-  
+  // 獨立標籤結構：使用 flex 容器水平排列，並由 gap 提供充足間距
+  let badgesHtml = '';
   let queueCount = (bed.queue && Array.isArray(bed.queue)) ? bed.queue.length : 0;
-  let queueTag = queueCount > 0 ? `<div class="top-badge queue-badge">等候:${queueCount}</div>` : '';
+  
+  if (bed.status !== 'idle') {
+    let badges = [];
+    if (bed.fallRisk) badges.push(`<span class="top-badge fall-badge">⚠️防跌</span>`);
+    if (queueCount > 0) badges.push(`<span class="top-badge queue-badge">等候:${queueCount}</span>`);
+    if (bed.femaleOnly) badges.push(`<span class="top-badge female-badge">🌸限女</span>`);
+    
+    if (badges.length > 0) {
+      badgesHtml = `<div class="badge-container">${badges.join('')}</div>`;
+    }
+  } else if (queueCount > 0) {
+    badgesHtml = `<div class="badge-container"><span class="top-badge queue-badge">等候:${queueCount}</span></div>`;
+  }
 
   if (bed.status === 'idle') {
     card.innerHTML = `
-      ${queueTag}
+      ${badgesHtml}
       <div class="bed-header"><span class="bed-num">${displayName}</span></div>
       <div class="status-text" style="font-size:0.75em; font-weight:700;">🟢 空置</div>
     `;
   } else if (bed.status === 'waiting') {
     card.innerHTML = `
-      ${fallTag}
-      ${queueTag}
-      ${femaleTag}
+      ${badgesHtml}
       <div class="bed-header">
         <span class="bed-num">${displayName}</span>
         <span class="physio-id">${bed.physioId || ''}</span>
@@ -804,9 +811,7 @@ function createBedCard(key) {
   } else if (bed.status === 'busy' && secondsLeft > 0) {
     let timerClass = secondsLeft <= 30 ? 'timer timer-warning' : 'timer';
     card.innerHTML = `
-      ${fallTag}
-      ${queueTag}
-      ${femaleTag}
+      ${badgesHtml}
       <div class="bed-header">
         <span class="bed-num">${displayName}</span>
         <span class="physio-id">${bed.physioId || ''}</span>
@@ -818,9 +823,7 @@ function createBedCard(key) {
     `;
   } else {
     card.innerHTML = `
-      ${fallTag}
-      ${queueTag}
-      ${femaleTag}
+      ${badgesHtml}
       <div class="bed-header">
         <span class="bed-num">${displayName}</span>
         <span class="physio-id">${bed.physioId || ''}</span>
