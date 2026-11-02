@@ -26,7 +26,7 @@
     justify-content: center;
     width: 100%;
     max-width: 950px;
-    margin-bottom: 14px; /* 留足夠空間給下邊快捷欄 */
+    margin-bottom: 14px;
     height: 34px;
   }
   .header-bar h1 {
@@ -120,7 +120,7 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
-  /* 走廊改窄至 16px */
+  /* 看板主佈局：走廊 16px */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 16px auto;
@@ -599,7 +599,7 @@
   </div>
 </div>
 
-<!-- 歷史紀錄 Modal（最近20筆輸入與清空，支援還原） -->
+<!-- 歷史紀錄 Modal -->
 <div class="modal-overlay" id="modal-history-overlay">
   <div class="modal">
     <h3 style="color:#38bdf8;">📋 看板歷史操作紀錄</h3>
@@ -721,7 +721,6 @@ let beds = {
   'nustep-2':    { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep 2', disabledItems: [] }
 };
 
-// 歷史紀錄陣列（上限 20 筆）
 let historyCleared = [];
 let historyInputs = [];
 
@@ -755,18 +754,22 @@ function persistLocalData() {
   }
 }
 
+// 紀錄 Input（專屬設備去重邏輯）
 function recordInput(bedKey, actionType, physioId, item, duration) {
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  const bedName = beds[bedKey]?.label || `${bedKey}號床`;
+  const bed = beds[bedKey] || {};
+  const bedName = bed.label || `${bedKey}號床`;
+  const isEquipment = !!bed.isEquipment;
   const actionLabel = actionType === 'busy' ? '▶️ 開機' : '⏳ 帶位';
 
   historyInputs.unshift({
     time: timeStr,
     bedKey: bedKey,
     bedName: bedName,
+    isEquipment: isEquipment,
     physioId: physioId,
-    item: item,
+    item: isEquipment ? '' : item, // 純設備不重複寫 item
     duration: duration,
     actionLabel: actionLabel
   });
@@ -774,18 +777,22 @@ function recordInput(bedKey, actionType, physioId, item, duration) {
   if (historyInputs.length > 20) historyInputs = historyInputs.slice(0, 20);
 }
 
+// 紀錄清空（專屬設備去重邏輯）
 function recordClear(bedKey, bedState) {
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  const bedName = beds[bedKey]?.label || `${bedKey}號床`;
+  const bed = beds[bedKey] || {};
+  const bedName = bed.label || `${bedKey}號床`;
+  const isEquipment = !!bed.isEquipment;
 
   historyCleared.unshift({
     time: timeStr,
     bedKey: bedKey,
     bedName: bedName,
+    isEquipment: isEquipment,
     physioId: bedState.physioId,
-    item: bedState.item,
-    snapshot: JSON.parse(JSON.stringify(bedState)) // 完整保存狀態供還原
+    item: isEquipment ? '' : bedState.item, // 純設備不重複寫 item
+    snapshot: JSON.parse(JSON.stringify(bedState))
   });
 
   if (historyCleared.length > 20) historyCleared = historyCleared.slice(0, 20);
@@ -934,6 +941,7 @@ function createBedCard(key) {
     badgesHtml = `<div class="badge-container"><span class="top-badge queue-badge">等候:${queueCount}</span></div>`;
   }
 
+  // 獨立設備（NuStep, Theraband, 手單車等）右側不重複顯示名稱
   let itemDisplay = (!bed.isEquipment && bed.item) ? bed.item : '';
 
   if (bed.status === 'idle') {
@@ -1236,7 +1244,6 @@ function handleFormSubmit(targetStatus = 'busy') {
 
   beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
   
-  // 寫入 Input 歷史紀錄
   recordInput(selectedBedKey, targetStatus, physio, selectedItemText, selectedDuration);
 
   persistLocalData();
@@ -1273,7 +1280,6 @@ function clearBedState() {
   const currentBed = beds[selectedBedKey] || {};
   let currentQueue = currentBed.queue || [];
 
-  // 寫入清空歷史紀錄（儲存當前完整狀態供還原）
   if (currentBed.status !== 'idle') {
     recordClear(selectedBedKey, currentBed);
   }
@@ -1317,7 +1323,7 @@ function removeFromQueue(index) {
   renderLayout();
 }
 
-/* 歷史紀錄與誤按還原系統 */
+/* 歷史紀錄與誤按還原系統（無重復設備邏輯） */
 let currentHistoryTab = 'cleared';
 
 function openHistoryModal() {
@@ -1347,16 +1353,18 @@ function switchHistoryTab(tab) {
       div.className = 'history-item';
       
       let undoBtn = '';
-      // 最頂（最新一筆）提供一鍵還原功能
       if (idx === 0) {
         undoBtn = `<button class="btn-undo" onclick="restoreClearedBed(${idx})">↩️ 還原此床</button>`;
       }
+
+      // 如果是專屬器材，不重複顯示項目名稱
+      let itemSnippet = (item.isEquipment || !item.item) ? '' : `<span style="color:#facc15;">${item.item}</span> | `;
 
       div.innerHTML = `
         <div>
           <span class="history-time">[${item.time}]</span>
           <b style="color:#ffffff;">${item.bedName}</b> | 
-          <span style="color:#facc15;">${item.item || ''}</span> | 
+          ${itemSnippet}
           <span style="color:#cbd5e1;">${item.physioId || ''}</span>
           <span style="color:#ef4444; font-size:0.75em; margin-left:4px;">(清空)</span>
         </div>
@@ -1372,12 +1380,15 @@ function switchHistoryTab(tab) {
     historyInputs.forEach(item => {
       const div = document.createElement('div');
       div.className = 'history-item';
+      
+      // 如果是專屬器材，不重複顯示項目名稱，只顯示時間和設備名
+      let itemSnippet = (item.isEquipment || !item.item) ? '' : `<span style="color:#facc15;">${item.item}</span> `;
+
       div.innerHTML = `
         <div>
           <span class="history-time">[${item.time}]</span>
           <b style="color:#ffffff;">${item.bedName}</b> | 
-          <span style="color:#facc15;">${item.item || ''}</span> 
-          <span style="color:#38bdf8;">(${item.duration}分)</span> | 
+          ${itemSnippet}<span style="color:#38bdf8;">(${item.duration}分)</span> | 
           <span style="color:#cbd5e1;">${item.physioId || ''}</span>
         </div>
         <span style="color:#34d399; font-size:0.8em; font-weight:700;">${item.actionLabel}</span>
@@ -1392,29 +1403,24 @@ function restoreClearedBed(idx) {
   if (!target || !target.snapshot) return;
 
   const currentBed = beds[target.bedKey];
-  // 安全保護：如果該床已被使用，提示確認防覆蓋
   if (currentBed && currentBed.status !== 'idle') {
     if (!confirm(`${target.bedName} 目前正在使用中！是否確認要覆蓋並還原為剛才清空的狀態？`)) {
       return;
     }
   }
 
-  // 還原完整狀態（連帶時間續算）
   let restored = JSON.parse(JSON.stringify(target.snapshot));
   
-  // 如果原本是 busy，重新校準時間以避免變為負數
   if (restored.status === 'busy' && restored.startTime) {
     const elapsedAtClear = Math.floor((Date.now() - restored.startTime) / 1000);
     const totalSecs = (restored.duration || 15) * 60;
     if (elapsedAtClear >= totalSecs) {
-      // 若清空時已經時間到，保持時間到狀態
       restored.startTime = Date.now() - (totalSecs * 1000);
     }
   }
 
   beds[target.bedKey] = restored;
 
-  // 從清空紀錄移除這筆
   historyCleared.splice(idx, 1);
   persistLocalData();
   
