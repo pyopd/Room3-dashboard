@@ -432,7 +432,7 @@
   </div>
 </div>
 
-<!-- 獨立待修停用管理 Modal（支援單一儀器或整床停用） -->
+<!-- 獨立待修停用管理 Modal -->
 <div class="modal-overlay" id="modal-maintenance-overlay">
   <div class="modal">
     <h3 style="color:#f59e0b;">🛠️ 設備 / 儀器待修管理</h3>
@@ -475,7 +475,7 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
 } catch (e) {
-  console.error("Firebase 初始化失敗，將以離線模式運作:", e);
+  console.warn("Firebase 初始化提示:", e);
 }
 
 const physioList = [
@@ -581,10 +581,41 @@ let beds = {
   'nustep-2':    { status: 'idle', isEquipment: true, disableAssistant: true, defaultMins: 10, label: 'NuStep 2', disabledItems: [] }
 };
 
+// 離線快取初始化：若本機已有上次儲存的資料，優先載入
+try {
+  const cachedData = localStorage.getItem('room3_beds_cache');
+  if (cachedData) {
+    const parsed = JSON.parse(cachedData);
+    Object.keys(parsed).forEach(k => {
+      if (beds[k]) {
+        beds[k] = { ...beds[k], ...parsed[k], disabledItems: parsed[k].disabledItems || [] };
+      }
+    });
+  }
+} catch (e) {
+  console.warn("讀取本地快取失敗:", e);
+}
+
+// 輔助函式：儲存資料到本地並同步到 Firebase
+function saveBedState(bedKey, data) {
+  try {
+    localStorage.setItem('room3_beds_cache', JSON.stringify(beds));
+  } catch (err) {}
+
+  if (db && navigator.onLine) {
+    try {
+      db.ref('beds/' + bedKey).set(data);
+    } catch (err) {
+      console.warn("雲端同步延遲，已保留於本地:", err);
+    }
+  }
+}
+
 let selectedBedKey = null;
 let selectedItemText = '';
 let selectedDuration = 15;
 
+// 線上即時監聽與自動備份到本地
 if (db) {
   db.ref('beds').on('value', snapshot => {
     try {
@@ -599,6 +630,7 @@ if (db) {
             };
           }
         });
+        localStorage.setItem('room3_beds_cache', JSON.stringify(beds));
         renderLayout();
       }
     } catch (err) {
@@ -626,7 +658,6 @@ function calculateWaitSeconds(bed) {
   return Math.floor((Date.now() - bed.waitTime) / 1000);
 }
 
-// 推薦欄判定：若該項服務在該床位已損壞，直接排除 (等待時間視為極大值)
 function getBedTotalWaitSeconds(key, serviceName = null) {
   const bed = beds[key];
   if (!bed || bed.status === 'maintenance') return 999999;
@@ -703,7 +734,6 @@ function createBedCard(key) {
   const card = document.createElement('div');
   let displayName = bed.label || `${key} 號床`;
   
-  // 整床待修停用外觀
   if (bed.status === 'maintenance') {
     card.className = `bed-card maintenance`;
     card.onclick = () => openMaintenanceModal(key);
@@ -909,7 +939,6 @@ function openModal(key) {
     itemContainer.innerHTML = '';
     const itemList = bedSpecificItems[key] || defaultItems;
     
-    // 如果當前選中的項目壞了，自動切換至第一個可用的項目
     const availableItems = itemList.filter(i => !disabledItems.includes(i));
     selectedItemText = bed.item && !disabledItems.includes(bed.item) 
       ? bed.item 
@@ -1029,9 +1058,7 @@ function handleFormSubmit(targetStatus = 'busy') {
   }
 
   beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
-  if (db) {
-    db.ref('beds/' + selectedBedKey).set(updateData);
-  }
+  saveBedState(selectedBedKey, updateData);
   closeModal();
   renderLayout();
 }
@@ -1054,9 +1081,7 @@ function addToQueue() {
   });
 
   beds[selectedBedKey].queue = currentQueue;
-  if (db) {
-    db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
-  }
+  saveBedState(selectedBedKey + '/queue', currentQueue);
   closeModal();
   renderLayout();
 }
@@ -1079,7 +1104,7 @@ function clearBedState() {
       disabledItems: currentBed.disabledItems || []
     };
     beds[selectedBedKey] = { ...beds[selectedBedKey], ...updateData };
-    if (db) db.ref('beds/' + selectedBedKey).set(updateData);
+    saveBedState(selectedBedKey, updateData);
   } else {
     const updateData = {
       status: 'idle',
@@ -1090,7 +1115,7 @@ function clearBedState() {
       disabledItems: currentBed.disabledItems || []
     };
     beds[selectedBedKey] = updateData;
-    if (db) db.ref('beds/' + selectedBedKey).set(updateData);
+    saveBedState(selectedBedKey, updateData);
   }
 
   closeModal();
@@ -1100,16 +1125,12 @@ function clearBedState() {
 function removeFromQueue(index) {
   let currentQueue = (beds[selectedBedKey] && beds[selectedBedKey].queue) ? beds[selectedBedKey].queue : [];
   currentQueue.splice(index, 1);
-  if (db) {
-    db.ref('beds/' + selectedBedKey + '/queue').set(currentQueue);
-  }
+  saveBedState(selectedBedKey + '/queue', currentQueue);
   openModal(selectedBedKey);
   renderLayout();
 }
 
-// =======================
 // 獨立維修管理邏輯
-// =======================
 function openMaintenanceModal(defaultKey = null) {
   const select = document.getElementById('maint-bed-select');
   select.innerHTML = '';
@@ -1138,14 +1159,14 @@ function onMaintBedChange() {
   const bed = beds[bedKey] || {};
   if (!bed.isEquipment) {
     const itemList = bedSpecificItems[bedKey] || defaultItems;
-itemList
-    .filter(item => item !== '運動')             
-    .forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item;
-      opt.innerText = `🔧 單一儀器: ${item}`;
-      targetTypeSelect.appendChild(opt);
-    });
+    itemList
+      .filter(item => item !== '運動')             
+      .forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.innerText = `🔧 單一儀器: ${item}`;
+        targetTypeSelect.appendChild(opt);
+      });
   }
 }
 
@@ -1163,7 +1184,6 @@ function renderMaintenanceList() {
     const b = beds[k];
     const bedName = b.label || `${k} 號床`;
 
-    // 1. 整床停用
     if (b.status === 'maintenance') {
       count++;
       const item = document.createElement('div');
@@ -1175,7 +1195,6 @@ function renderMaintenanceList() {
       listContainer.appendChild(item);
     }
 
-    // 2. 單項儀器停用
     if (b.disabledItems && b.disabledItems.length > 0) {
       b.disabledItems.forEach(disabledItem => {
         count++;
@@ -1221,7 +1240,7 @@ function setMaintenanceStatus(isMaintenance) {
     beds[bedKey].disabledItems = disabledItems;
   }
 
-  if (db) db.ref('beds/' + bedKey).set(beds[bedKey]);
+  saveBedState(bedKey, beds[bedKey]);
   renderMaintenanceList();
   renderLayout();
 }
@@ -1229,7 +1248,7 @@ function setMaintenanceStatus(isMaintenance) {
 function quickRestoreWholeBed(k) {
   if (!beds[k]) return;
   beds[k].status = 'idle';
-  if (db) db.ref('beds/' + k).set(beds[k]);
+  saveBedState(k, beds[k]);
   renderMaintenanceList();
   renderLayout();
 }
@@ -1237,7 +1256,7 @@ function quickRestoreWholeBed(k) {
 function quickRestoreSingleItem(k, itemName) {
   if (!beds[k] || !beds[k].disabledItems) return;
   beds[k].disabledItems = beds[k].disabledItems.filter(i => i !== itemName);
-  if (db) db.ref('beds/' + k).set(beds[k]);
+  saveBedState(k, beds[k]);
   renderMaintenanceList();
   renderLayout();
 }
