@@ -60,7 +60,7 @@
     border-color: #64748b;
   }
 
-  /* 快捷推薦欄：還原比例並精簡寬度 */
+  /* 快捷推薦欄：短名稱 HP/TENS 椅 */
   .quick-avail-bar {
     display: flex;
     flex-wrap: nowrap;
@@ -116,7 +116,7 @@
   .avail-time-tag.soon { background: #854d0e; color: #facc15; }
   .avail-time-tag.busy { background: #991b1b; color: #f87171; }
 
-  /* 看板主佈局：還原原本尺寸（160px，無多餘外擴） */
+  /* 看板主佈局：標準 160px */
   .floor-plan {
     display: inline-grid;
     grid-template-columns: auto 24px auto;
@@ -172,6 +172,7 @@
   .grid-5 { display: grid; grid-template-columns: repeat(5, 160px); gap: 14px 8px; width: fit-content; }
   .empty-cell { width: 160px; height: 84px; }
 
+  /* 床位卡片結構優化 */
   .bed-card {
     position: relative;
     width: 160px; height: 84px;
@@ -191,18 +192,18 @@
 
   .idle { border-color: #10b981; background: rgba(16, 185, 129, 0.05); }
   .idle .status-text { color: #10b981; }
-  .busy-normal { border-color: #38bdf8 !important; background: rgba(56, 189, 248, 0.08); }
-  .busy-warning { border-color: #facc15 !important; background: rgba(250, 204, 21, 0.12); }
-  .done { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.15); animation: pulse-red 1.5s infinite; }
+  .busy-normal { border-color: #38bdf8 !important; background: rgba(56, 189, 248, 0.12); }
+  .busy-warning { border-color: #facc15 !important; background: rgba(250, 204, 21, 0.16); }
+  .done { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.2); animation: pulse-red 1.5s infinite; }
   
   .waiting-start { 
     border-color: #d97706 !important; 
-    background: rgba(217, 119, 6, 0.18); 
+    background: rgba(217, 119, 6, 0.22); 
     animation: pulse-curry 2s infinite; 
   }
   .waiting-overtime { 
     border-color: #b45309 !important; 
-    background: rgba(180, 83, 9, 0.3); 
+    background: rgba(180, 83, 9, 0.35); 
     animation: pulse-curry-dark 1s infinite; 
   }
 
@@ -261,15 +262,52 @@
   .queue-badge { left: 50%; transform: translateX(-50%); background: #8b5cf6; }
   .female-badge { right: -4px; background: #ec4899; }
 
-  .bed-header { display: flex; justify-content: space-between; align-items: center; }
-  .bed-num { font-size: 0.85em; font-weight: 700; color: #f8fafc; }
-  .physio-id { font-size: 0.75em; font-weight: 700; color: #38bdf8; }
-  .item-name { font-size: 0.7em; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 頂部標題與治療師代號 */
+  .bed-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%;
+    line-height: 1.2;
+  }
+  .bed-num { 
+    font-size: 0.88em; 
+    font-weight: 800; 
+    color: #f8fafc; 
+  }
+  .physio-id { 
+    font-size: 0.76em; 
+    font-weight: 700; 
+    color: #fbbf24; /* 醒目金黃色，一眼分得出治療師 */
+    background: rgba(0, 0, 0, 0.25);
+    padding: 1px 4px;
+    border-radius: 4px;
+  }
 
-  .timer { font-size: 0.92em; font-weight: 700; font-family: 'Courier New', Courier, monospace; color: #38bdf8; }
+  /* 核心優化：治療項目名稱（例如 Zimmer）顯著放大、亮白色高對比 */
+  .item-name { 
+    font-size: 0.88em; 
+    font-weight: 800; 
+    color: #ffffff; 
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    letter-spacing: 0.3px;
+    margin: 1px 0;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+  }
+
+  /* 計時器與狀態文字清晰加強 */
+  .timer { 
+    font-size: 0.95em; 
+    font-weight: 800; 
+    font-family: 'Courier New', Courier, monospace; 
+    color: #38bdf8; 
+    letter-spacing: 0.5px;
+  }
   .timer-warning { color: #facc15 !important; }
-  .timer-done { color: #ef4444 !important; font-size: 0.85em; font-weight: 800; }
-  .timer-wait { color: #f59e0b !important; font-size: 0.8em; font-weight: 800; }
+  .timer-done { color: #ef4444 !important; font-size: 0.88em; font-weight: 900; }
+  .timer-wait { color: #fb923c !important; font-size: 0.82em; font-weight: 800; }
 
   /* 彈窗樣式 */
   .modal-overlay {
@@ -701,7 +739,7 @@ function createBedCard(key) {
     card.onclick = () => openMaintenanceModal(key);
     card.innerHTML = `
       <div class="bed-header"><span class="bed-num">${displayName}</span></div>
-      <div class="status-text" style="font-size:0.75em; font-weight:700; color:#cbd5e1;">🛠️ 待修停用</div>
+      <div class="status-text" style="font-size:0.8em; font-weight:800; color:#cbd5e1;">🛠️ 待修停用</div>
     `;
     return card;
   }
@@ -734,16 +772,19 @@ function createBedCard(key) {
     card.innerHTML = `
       ${queueTag}
       <div class="bed-header"><span class="bed-num">${displayName}</span></div>
-      <div class="status-text" style="font-size:0.7em; font-weight:600;">🟢 空置</div>
+      <div class="status-text" style="font-size:0.75em; font-weight:700;">🟢 空置</div>
     `;
   } else if (bed.status === 'waiting') {
     card.innerHTML = `
       ${fallTag}
       ${queueTag}
       ${femaleTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId || ''}</span></div>
+      <div class="bed-header">
+        <span class="bed-num">${displayName}</span>
+        <span class="physio-id">${bed.physioId || ''}</span>
+      </div>
       <div class="item-name">${bed.item || displayName} (${bed.duration || 15}分)</div>
-      <div class="timer timer-wait">⏳ 等候開機 (${formatTime(waitSeconds)})</div>
+      <div class="timer timer-wait">⏳ 等開機 (${formatTime(waitSeconds)})</div>
     `;
   } else if (bed.status === 'busy' && secondsLeft > 0) {
     let timerClass = secondsLeft <= 30 ? 'timer timer-warning' : 'timer';
@@ -751,7 +792,10 @@ function createBedCard(key) {
       ${fallTag}
       ${queueTag}
       ${femaleTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId || ''}</span></div>
+      <div class="bed-header">
+        <span class="bed-num">${displayName}</span>
+        <span class="physio-id">${bed.physioId || ''}</span>
+      </div>
       <div class="item-name">${bed.item || displayName}</div>
       <div class="${timerClass}">${formatTime(secondsLeft)}</div>
     `;
@@ -760,7 +804,10 @@ function createBedCard(key) {
       ${fallTag}
       ${queueTag}
       ${femaleTag}
-      <div class="bed-header"><span class="bed-num">${displayName}</span><span class="physio-id">${bed.physioId || ''}</span></div>
+      <div class="bed-header">
+        <span class="bed-num">${displayName}</span>
+        <span class="physio-id">${bed.physioId || ''}</span>
+      </div>
       <div class="item-name">${bed.item || displayName}</div>
       <div class="timer timer-done">🔔 時間到</div>
     `;
